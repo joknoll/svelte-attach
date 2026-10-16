@@ -1,7 +1,6 @@
 packages:
-  - apps/*
+  - examples/*
   - packages/*
-  - tools/*
 
 catalogMode: prefer
 
