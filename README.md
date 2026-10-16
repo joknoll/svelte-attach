@@ -1,29 +1,22 @@
-# Vite+ Monorepo Starter
+# svelte-attach
 
-A starter for creating a Vite+ monorepo.
+Small Svelte 5 attachment packages for keyboard shortcuts, sound effects, vibration, and gamepad buttons. Each package is published independently and can be installed on its own.
+
+| Package                                              | Purpose                                            |
+| ---------------------------------------------------- | -------------------------------------------------- |
+| [`@joknoll/svelte-attach-key`](packages/key)         | Keyboard shortcuts and pressed state               |
+| [`@joknoll/svelte-attach-sound`](packages/sound)     | Web Audio playback bound to DOM events             |
+| [`@joknoll/svelte-attach-haptic`](packages/haptic)   | Web Vibration feedback bound to DOM events         |
+| [`@joknoll/svelte-attach-gamepad`](packages/gamepad) | Standard gamepad buttons bound to focused elements |
+
+The example site lives in [`examples/website`](examples/website).
 
 ## Development
 
-- Check everything is ready:
-
 ```bash
+vp install
 vp run ready
-```
-
-- Run the tests:
-
-```bash
-vp run -r test
-```
-
-- Build the monorepo:
-
-```bash
-vp run -r build
-```
-
-- Run the development server:
-
-```bash
 vp run dev
 ```
+
+`vp run ready` formats, lints, type-checks, tests, and builds the workspace. Package builds use Vite+ 1.2's `vp pack`.
