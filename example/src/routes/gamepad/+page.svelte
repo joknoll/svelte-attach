@@ -3,87 +3,157 @@
     isSupported,
     isButtonPressed,
     gamepadButton,
-    GamepadButtonMap,
+    type ButtonName,
   } from "@joknoll/svelte-attach/gamepad";
+  import Example from "#lib/Example.svelte";
+  import Notice from "#lib/Notice.svelte";
+  import PadButton from "#lib/PadButton.svelte";
+  import PageHeader from "#lib/PageHeader.svelte";
+  import Section from "#lib/Section.svelte";
 
-  const buttons = Object.keys(GamepadButtonMap) as (keyof typeof GamepadButtonMap)[];
+  // SYNC(docs/gamepad.md): the groups under "Buttons".
+  const groups: { name: string; buttons: ButtonName[] }[] = [
+    { name: "Face", buttons: ["A", "B", "X", "Y"] },
+    { name: "Shoulders and triggers", buttons: ["LB", "RB", "LT", "RT"] },
+    { name: "Stick clicks", buttons: ["L3", "R3"] },
+    { name: "D-pad", buttons: ["UP", "DOWN", "LEFT", "RIGHT"] },
+    { name: "System", buttons: ["SELECT", "START", "HOME"] },
+  ];
 
+  let supported = $state(true);
   let connected = $state(false);
-  let activations = $state(0);
-  let pressed = $state<Record<string, boolean>>({});
-  let frame = 0;
-
-  function poll() {
-    const pad = typeof navigator !== "undefined" ? navigator.getGamepads?.().find(Boolean) : null;
-    connected = Boolean(pad);
-    const next: Record<string, boolean> = {};
-    for (const name of buttons) next[name] = isButtonPressed(name);
-    pressed = next;
-    frame = requestAnimationFrame(poll);
-  }
+  let held = $state.raw<Partial<Record<ButtonName, boolean>>>({});
 
   $effect(() => {
-    if (!isSupported()) return;
-    frame = requestAnimationFrame(poll);
+    supported = isSupported();
+    if (!supported) return;
+    let frame = requestAnimationFrame(function poll() {
+      connected = navigator.getGamepads().some(Boolean);
+      const next: Partial<Record<ButtonName, boolean>> = {};
+      for (const { buttons } of groups) for (const name of buttons) next[name] = isButtonPressed(name);
+      held = next;
+      frame = requestAnimationFrame(poll);
+    });
     return () => cancelAnimationFrame(frame);
   });
+
+  const actions = [
+    { button: "A", label: "Activate", done: "Activated" },
+    { button: "START", label: "Menu", done: "Menu opened" },
+  ] as const;
+  type Action = (typeof actions)[number];
+
+  let action = $state.raw<Action>(actions[0]);
+  let count = $state(0);
+
+  function activate(next: Action) {
+    count = next === action ? count + 1 : 1;
+    action = next;
+  }
+
+  let jumps = $state(0);
 </script>
 
-<h1>Gamepad</h1>
+<PageHeader
+  title="Gamepad"
+  accent="flick"
+  code={'import { gamepadButton, isButtonPressed, isSupported } from "@joknoll/svelte-attach/gamepad";'}
+  docs="gamepad.md"
+/>
 
-<p>
-  Focus the button below, then press A on a standard-mapped gamepad. The button activates once per
-  press. The list also shows the current button states.
-</p>
+{#if !supported}
+  <Notice>This browser doesn't support the Gamepad API.</Notice>
+{:else if !connected}
+  <Notice>Connect a gamepad and press any button.</Notice>
+{/if}
 
-<label class="support-indicator">
-  <input type="checkbox" checked={isSupported()} disabled />
-  Gamepad API available
-</label>
+<Section title="Read a button">
+  <Example
+    code={`requestAnimationFrame(function poll() {
+  held = isButtonPressed("A");
+  requestAnimationFrame(poll);
+});`}
+  >
+    <dl data-slot="map">
+      {#each groups as group (group.name)}
+        <dt>{group.name}</dt>
+        <dd>
+          {#each group.buttons as name (name)}
+            <div>
+              <PadButton {name} held={held[name]} />
+              <code>{name}</code>
+            </div>
+          {/each}
+        </dd>
+      {/each}
+    </dl>
+  </Example>
+</Section>
 
-<p class="status">{connected ? "Gamepad connected" : "No gamepad connected"}</p>
+<Section title="Activate the focused element">
+  {#snippet lead()}
+    Tab to a button, then press its gamepad shortcut. Only the focused button responds.
+  {/snippet}
+  <Example code={`<button {@attach gamepadButton("${action.button}")}>${action.label}</button>`}>
+    {#each actions as item (item.button)}
+      <button {@attach gamepadButton(item.button)} onclick={() => activate(item)}>
+        {item.label} <PadButton name={item.button} />
+      </button>
+    {/each}
+    <output>{count ? `${action.done} ×${count}` : ""}</output>
+  </Example>
+</Section>
 
-<button {@attach gamepadButton("A")} onclick={() => (activations += 1)}>
-  Focus me, then press A ({activations})
-</button>
-
-<ul class="buttons">
-  {#each buttons as name (name)}
-    <li class:on={pressed[name]}>{name}</li>
-  {/each}
-</ul>
+<Section title="Activate without focus">
+  {#snippet lead()}
+    Press <PadButton name="Y" /> to jump. <PadButton name="LB" /> and <PadButton name="RB" /> switch pages.
+  {/snippet}
+  <Example code={'<button {@attach gamepadButton("Y", { requireFocus: false })}>Jump</button>'}>
+    <button {@attach gamepadButton("Y", { requireFocus: false })} onclick={() => jumps++}>
+      Jump <PadButton name="Y" />
+    </button>
+    <output>{jumps ? `Jumped ×${jumps}` : ""}</output>
+  </Example>
+</Section>
 
 <style>
-  .support-indicator {
-    display: flex;
+  [data-slot="map"] {
+    display: grid;
+    flex: 1 1 100%;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-2xs) var(--space-m);
     align-items: center;
-    gap: 0.5rem;
-    cursor: default;
-  }
+    margin: 0;
 
-  .status {
-    font-weight: 600;
-  }
+    & dt {
+      font-size: var(--text--1);
+      color: var(--color-text-muted);
+    }
 
-  .buttons {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+    & dd {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      align-items: end;
+      margin: 0;
+      font-size: 1.375rem;
+    }
 
-  .buttons li {
-    padding: 0.4rem 0.7rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #fff;
-    font-family: monospace;
-  }
+    /* Each button above its API name. */
+    & dd > div {
+      display: grid;
+      gap: var(--space-3xs);
+      justify-items: center;
+      min-inline-size: 3rem;
+    }
 
-  .buttons li.on {
-    background: #1a1a1a;
-    color: #fff;
-    border-color: #1a1a1a;
+    & code {
+      font-size: var(--text--1);
+      color: var(--color-text-muted);
+    }
+
+    @media (width < 36rem) {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

@@ -1,225 +1,291 @@
 <script lang="ts">
   import { formatHint, hotkey, pressed } from "@joknoll/svelte-attach/key";
+  import type { Attachment } from "svelte/attachments";
+  import { on } from "svelte/events";
+  import Example from "#lib/Example.svelte";
+  import PageHeader from "#lib/PageHeader.svelte";
+  import Section from "#lib/Section.svelte";
 
-  let saveCount = $state(0);
-  let undoCount = $state(0);
-  let likeCount = $state(0);
-  let enabled = $state(true);
-  let lastKey = $state<string | null>(null);
+  let hydrated = $state(false);
+  $effect(() => {
+    hydrated = true;
+  });
 
-  function flash(key: string) {
-    lastKey = key;
-    setTimeout(() => (lastKey = null), 1000);
+  function hint(keys: string | readonly string[]): string {
+    void hydrated; // Refresh prerendered Ctrl labels after hydration.
+    return formatHint(keys);
   }
+
+  const bindings = [
+    { keys: "f", label: "❤️ Like", done: "Liked" },
+    { keys: "ctrl+s", label: "Save", done: "Saved" },
+    { keys: "mod+z", label: "Undo", done: "Undone" },
+  ] as const;
+  type Binding = (typeof bindings)[number];
+
+  let binding = $state.raw<Binding>(bindings[0]);
+  let fired = $state(0);
+
+  function fire(next: Binding) {
+    fired = next === binding ? fired + 1 : 1;
+    binding = next;
+  }
+
+  // Hold to repeat: a marker on a 5 × 5 board.
+  const SIZE = 5;
+  let x = $state(2);
+  let y = $state(2);
+
+  function move(dx: number, dy: number) {
+    x = Math.min(SIZE - 1, Math.max(0, x + dx));
+    y = Math.min(SIZE - 1, Math.max(0, y + dy));
+  }
+
+  let enabled = $state(true);
+  let step = $state(1);
+
+  // A few hearts fly out of the emoji on every like, spread evenly around a random start angle.
+  const hearts: Attachment<HTMLElement> = (button) =>
+    on(button, "click", () => {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const rect = button.getBoundingClientRect();
+      // NOTE: the emoji sits one half-height in from the start edge.
+      const originX = rect.left + rect.height / 2;
+      const originY = rect.top + rect.height / 2;
+      const count = 6;
+      const phase = Math.random() * Math.PI * 2;
+      for (let index = 0; index < count; index++) {
+        const angle = phase + ((index + (Math.random() - 0.5) * 0.6) / count) * Math.PI * 2;
+        const distance = 24 + Math.random() * 16;
+        const heart = document.createElement("span");
+        heart.textContent = "♥";
+        heart.setAttribute("aria-hidden", "true");
+        heart.dataset.heart = "";
+        heart.style.left = `${originX}px`;
+        heart.style.top = `${originY}px`;
+        heart.style.setProperty("--heart-x", `${Math.cos(angle) * distance}px`);
+        heart.style.setProperty("--heart-y", `${Math.sin(angle) * distance}px`);
+        document.body.append(heart);
+        setTimeout(() => heart.remove(), 800);
+      }
+    });
 </script>
 
-<h1>Key</h1>
-<p class="subtitle">Keyboard shortcut attachments for Svelte 5 elements</p>
+<PageHeader
+  title="Keyboard"
+  code={'import { hotkey, pressed, formatHint } from "@joknoll/svelte-attach/key";'}
+  accent="press"
+  docs="keyboard.md"
+/>
 
-<div class="grid">
-  <div class="card">
-    <h2>Simple key</h2>
-    <p>Press <kbd>L</kbd> anywhere to like</p>
-    <button
-      title={formatHint("l")}
-      {@attach hotkey("l")}
-      onclick={() => {
-        likeCount++;
-        flash("L");
-      }}
-      class:flash={lastKey === "L"}
-    >
-      ♥ Like ({likeCount})
-    </button>
-    <code>hotkey("l")</code>
-  </div>
+<Section title="Bind a shortcut">
+  {#snippet lead()}
+    Shortcuts work without focus. By default, they're ignored in text fields.
+  {/snippet}
+  <Example code={`<button {@attach hotkey("${binding.keys}")}>${binding.label}</button>`}>
+    {#each bindings as item (item.keys)}
+      <button
+        {@attach hotkey(item.keys)}
+        {@attach item.keys === "f" && hearts}
+        onclick={() => fire(item)}
+      >
+        {item.label} <kbd>{hint(item.keys)}</kbd>
+      </button>
+    {/each}
+    <input type="text" placeholder="Type F here" aria-label="Shortcut test field" />
+    <output>{fired ? `${binding.done} ×${fired}` : ""}</output>
+  </Example>
+</Section>
 
-  <div class="card">
-    <h2>Modifier keys</h2>
-    <p>Press <kbd>Ctrl</kbd>+<kbd>S</kbd> to save</p>
-    <button
-      title={formatHint("ctrl+s")}
-      {@attach hotkey("ctrl+s")}
-      onclick={() => {
-        saveCount++;
-        flash("Ctrl+S");
-      }}
-      class:flash={lastKey === "Ctrl+S"}
-    >
-      Save ({saveCount})
-    </button>
-    <code>hotkey("ctrl+s")</code>
-  </div>
+<Section title="Hold to repeat">
+  {#snippet lead()}
+    Hold an arrow key or <kbd>H</kbd>, <kbd>J</kbd>, <kbd>K</kbd>, or <kbd>L</kbd>.
+  {/snippet}
+  <Example
+    code={`<button
+  {@attach hotkey(["arrowup", "k"], {
+    ignoreRepeat: false,
+    pressedClass: "is-pressed",
+  })}
+  onclick={() => move(0, -1)}
+>↑</button>`}
+  >
+    <div data-slot="board" aria-hidden="true">
+      <span style:translate="{x * 100}% {y * 100}%"></span>
+    </div>
+    <div data-slot="arrows" role="group" aria-label="Move">
+      <button
+        data-slot="up"
+        aria-label="Up"
+        title={hint(["arrowup", "k"])}
+        {@attach hotkey(["arrowup", "k"], { ignoreRepeat: false, pressedClass: "is-pressed" })}
+        onclick={() => move(0, -1)}>↑</button
+      >
+      <button
+        data-slot="left"
+        aria-label="Left"
+        title={hint(["arrowleft", "h"])}
+        {@attach hotkey(["arrowleft", "h"], { ignoreRepeat: false, pressedClass: "is-pressed" })}
+        onclick={() => move(-1, 0)}>←</button
+      >
+      <button
+        data-slot="down"
+        aria-label="Down"
+        title={hint(["arrowdown", "j"])}
+        {@attach hotkey(["arrowdown", "j"], { ignoreRepeat: false, pressedClass: "is-pressed" })}
+        onclick={() => move(0, 1)}>↓</button
+      >
+      <button
+        data-slot="right"
+        aria-label="Right"
+        title={hint(["arrowright", "l"])}
+        {@attach hotkey(["arrowright", "l"], { ignoreRepeat: false, pressedClass: "is-pressed" })}
+        onclick={() => move(1, 0)}>→</button
+      >
+    </div>
+  </Example>
+</Section>
 
-  <div class="card">
-    <h2>Cross-platform mod</h2>
-    <p>Press <kbd>Mod</kbd>+<kbd>Z</kbd> (Ctrl on Windows/Linux, ⌘ on Mac)</p>
-    <button
-      title={formatHint("mod+z")}
-      {@attach hotkey("mod+z")}
-      onclick={() => {
-        undoCount++;
-        flash("Mod+Z");
-      }}
-      class:flash={lastKey === "Mod+Z"}
-    >
-      Undo ({undoCount})
-    </button>
-    <code>hotkey("mod+z")</code>
-  </div>
+<Section title="Shortcut hints">
+  <Example code={'<kbd {@attach pressed("mod+enter")}>{formatHint("mod+enter")}</kbd>'}>
+    <dl data-slot="hints">
+      <div>
+        <dt><code>"shift"</code></dt>
+        <dd><kbd {@attach pressed("shift")}>{hint("shift")}</kbd></dd>
+      </div>
+      <div>
+        <dt><code>"mod+enter"</code></dt>
+        <dd><kbd {@attach pressed("mod+enter")}>{hint("mod+enter")}</kbd></dd>
+      </div>
+      <div>
+        <dt><code>"alt+arrowup"</code></dt>
+        <dd><kbd {@attach pressed("alt+arrowup")}>{hint("alt+arrowup")}</kbd></dd>
+      </div>
+      <div>
+        <dt><code>["j", "arrowdown"]</code></dt>
+        <dd>
+          <kbd {@attach pressed(["j", "arrowdown"])}>{hint(["j", "arrowdown"])}</kbd>
+        </dd>
+      </div>
+    </dl>
+  </Example>
+</Section>
 
-  <div class="card">
-    <h2>Held state</h2>
-    <p>Hold <kbd {@attach pressed("shift")}>Shift</kbd> and press <kbd>Space</kbd></p>
-    <button
-      title={formatHint("shift+space")}
-      {@attach hotkey("shift+space", { pressedClass: "is-pressed" })}
-      onclick={() => flash("Shift+Space")}
-      class:flash={lastKey === "Shift+Space"}
-    >
-      Shift+Space
-    </button>
-    <code>hotkey("shift+space", &#123; pressedClass: "is-pressed" &#125;)</code>
-  </div>
-
-  <div class="card">
-    <h2>Conditional</h2>
-    <p>Press <kbd>K</kbd> — toggle to enable/disable</p>
-    <label class="toggle">
-      <input type="checkbox" bind:checked={enabled} {@attach hotkey("h")} />
-      Hotkey {enabled ? "enabled" : "disabled"} <kbd>H</kbd>
+<Section title="Disable a shortcut">
+  {#snippet lead()}
+    Press <kbd>T</kbd> to toggle the shortcut. Next stays clickable.
+  {/snippet}
+  <Example code={'<button {@attach enabled && hotkey("n")}>Next</button>'}>
+    <label>
+      Hotkey <input type="checkbox" role="switch" bind:checked={enabled} {@attach hotkey("t")} />
     </label>
-    <button
-      {@attach enabled && hotkey("k")}
-      onclick={() => flash("K")}
-      class:flash={lastKey === "K"}
-      class:dim={!enabled}
-    >
-      Press K
+    <button {@attach enabled && hotkey("n")} onclick={() => step++}>
+      Next <kbd>{hint("n")}</kbd>
     </button>
-    <code>&#123;@attach enabled && hotkey("k")&#125;</code>
-  </div>
-
-  <div class="card">
-    <h2>Alternatives</h2>
-    <p>Either <kbd>J</kbd> or <kbd>↓</kbd> will trigger the button</p>
-    <button
-      title={formatHint(["j", "arrowdown"])}
-      {@attach hotkey(["j", "arrowdown"])}
-      onclick={() => flash("J or ArrowDown")}
-      class:flash={lastKey === "J or ArrowDown"}
-    >
-      Move down
-    </button>
-    <code>hotkey(["j", "arrowdown"])</code>
-  </div>
-</div>
-
-{#if lastKey}
-  <div class="toast">Triggered: {lastKey}</div>
-{/if}
+    <output>Step {step}</output>
+  </Example>
+</Section>
 
 <style>
-  .subtitle {
-    color: #666;
-    margin-top: 0.25rem;
-    margin-bottom: 2rem;
+  /* A 5 × 5 field with a dot on each cell; the marker moves one cell per press. */
+  [data-slot="board"] {
+    position: relative;
+    inline-size: 5.25em;
+    aspect-ratio: 1;
+    background-image: radial-gradient(circle, var(--color-line-strong) 1px, transparent 1.5px);
+    background-size: 20% 20%;
+    border-radius: var(--radius-control);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+
+    & span {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      inline-size: 20%;
+      aspect-ratio: 1;
+      background: radial-gradient(circle, var(--color-focus) 45%, transparent 50%);
+
+      @media (prefers-reduced-motion: no-preference) {
+        transition: translate var(--duration-base) var(--ease-overshoot);
+      }
+    }
   }
 
-  .grid {
+  /* The inverted T of a keyboard's arrow keys. */
+  [data-slot="arrows"] {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
+    grid-template-areas:
+      ". up ."
+      "left down right";
+    gap: var(--space-3xs);
+    margin-inline-start: var(--space-s);
+
+    & button {
+      inline-size: 2.5em;
+      padding: 0;
+    }
   }
 
-  .card {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 1.25rem;
+  [data-slot="up"] {
+    grid-area: up;
+  }
+
+  [data-slot="left"] {
+    grid-area: left;
+  }
+
+  [data-slot="down"] {
+    grid-area: down;
+  }
+
+  [data-slot="right"] {
+    grid-area: right;
+  }
+
+  [data-slot="hints"] {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    background: #fff;
-  }
-
-  h2 {
-    font-size: 1rem;
+    flex-wrap: wrap;
+    gap: var(--space-s) var(--space-m);
     margin: 0;
+
+    & div {
+      display: grid;
+      gap: var(--space-3xs);
+      justify-items: start;
+    }
+
+    & dt {
+      font-size: var(--text--1);
+      color: var(--color-text-muted);
+    }
+
+    & dd {
+      margin: 0;
+    }
   }
 
-  p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #444;
-  }
-
-  kbd {
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 1px 5px;
-    font-size: 0.8em;
-    font-family: monospace;
-  }
-
-  button {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #fff;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.15s;
-    align-self: flex-start;
-  }
-
-  button:hover {
-    background: #f5f5f5;
-  }
-
-  button.flash {
-    background: #d4edda;
-    border-color: #28a745;
-  }
-
-  /* The attachments add these classes at runtime, so the compiler cannot see them in markup. */
-  kbd:global(.is-pressed),
-  button:global(.is-pressed) {
-    background: #e2e8f0;
-    border-color: #64748b;
-  }
-
-  button.dim {
-    opacity: 0.4;
-  }
-
-  code {
-    font-size: 0.75rem;
-    background: #f5f5f5;
-    border-radius: 4px;
-    padding: 0.25rem 0.5rem;
-    color: #333;
-    margin-top: auto;
-  }
-
-  .toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    cursor: pointer;
-  }
-
-  .toast {
+  :global([data-heart]) {
     position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
-    color: #fff;
-    padding: 0.5rem 1.25rem;
-    border-radius: 999px;
+    z-index: 1;
     font-size: 0.875rem;
+    color: var(--color-accent-500);
     pointer-events: none;
+    translate: -50% -50%;
+    animation:
+      heart-fly 600ms var(--ease-out) both,
+      heart-fade 300ms 300ms linear both;
+  }
+
+  @keyframes -global-heart-fly {
+    to {
+      scale: 0.6;
+      translate: calc(-50% + var(--heart-x)) calc(-50% + var(--heart-y));
+    }
+  }
+
+  @keyframes -global-heart-fade {
+    to {
+      opacity: 0;
+    }
   }
 </style>

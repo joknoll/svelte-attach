@@ -1,0 +1,320 @@
+/*
+ * The site's only global stylesheet: tokens and native elements, no layout.
+ * Layout lives in each component's <style>, as named grid areas.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --color-white: oklch(100% 0 0);
+  --color-gray-100: oklch(95% 0 0);
+  --color-gray-200: oklch(89% 0 0);
+  --color-gray-400: oklch(73% 0 0);
+  --color-gray-500: oklch(64% 0 0);
+  --color-gray-600: oklch(55% 0 0);
+  --color-gray-700: oklch(47% 0 0);
+  --color-gray-900: oklch(30% 0 0);
+  --color-gray-950: oklch(20.5% 0 0);
+
+  /* orangered */
+  --color-accent-100: oklch(95% 0.03 40);
+  --color-accent-200: oklch(89% 0.07 39);
+  --color-accent-400: oklch(73% 0.15 38);
+  --color-accent-500: oklch(65% 0.2 37);
+  --color-accent-600: oklch(55% 0.19 36);
+  --color-accent-700: oklch(47% 0.16 35);
+  --color-accent-800: oklch(40% 0.13 34);
+
+  --surface-canvas: light-dark(var(--color-white), var(--color-gray-950));
+  --surface-raised: light-dark(
+    var(--color-white),
+    color-mix(in oklab, var(--color-gray-900) 70%, transparent)
+  );
+  --surface-selected: light-dark(
+    var(--color-accent-100),
+    color-mix(in oklab, var(--color-accent-500) 25%, transparent)
+  );
+  --color-text: light-dark(var(--color-gray-900), var(--color-gray-200));
+  --color-text-strong: light-dark(var(--color-gray-950), var(--color-gray-100));
+  --color-text-muted: light-dark(var(--color-gray-700), var(--color-gray-400));
+  --color-text-selected: light-dark(var(--color-accent-800), var(--color-accent-200));
+  --color-link: light-dark(var(--color-accent-700), var(--color-accent-400));
+  --color-line: light-dark(
+    color-mix(in oklab, var(--color-gray-950) 10%, transparent),
+    color-mix(in oklab, var(--color-white) 10%, transparent)
+  );
+  --color-line-strong: light-dark(var(--color-gray-500), var(--color-gray-600));
+  --color-focus: light-dark(var(--color-accent-600), var(--color-accent-400));
+
+  /* Syntax: off the accent hue, so orangered keeps meaning "current" and "action". */
+  --syntax-keyword: light-dark(oklch(48% 0.16 300), oklch(76% 0.12 300));
+  --syntax-function: light-dark(oklch(47% 0.13 250), oklch(77% 0.1 245));
+  --syntax-string: light-dark(oklch(47% 0.1 150), oklch(79% 0.11 150));
+  --syntax-number: light-dark(oklch(50% 0.11 75), oklch(81% 0.11 80));
+
+  --text--1: clamp(0.8333rem, 0.8111rem + 0.1111vi, 0.9rem);
+  --text-0: clamp(1rem, 0.9583rem + 0.2083vi, 1.125rem);
+  --text-1: clamp(1.2rem, 1.1312rem + 0.3438vi, 1.4063rem);
+  --text-3: clamp(1.728rem, 1.5716rem + 0.7821vi, 2.1973rem);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --leading-tight: 1.15;
+  --leading-body: 1.6;
+  --measure: 62ch;
+
+  --space-3xs: clamp(0.25rem, 0.2396rem + 0.0521vi, 0.2813rem);
+  --space-2xs: clamp(0.5rem, 0.4792rem + 0.1042vi, 0.5625rem);
+  --space-xs: clamp(0.75rem, 0.7188rem + 0.1563vi, 0.8438rem);
+  --space-s: clamp(1rem, 0.9583rem + 0.2083vi, 1.125rem);
+  --space-m: clamp(1.5rem, 1.4375rem + 0.3125vi, 1.6875rem);
+  --space-l: clamp(2rem, 1.9167rem + 0.4167vi, 2.25rem);
+  --space-xl: clamp(3rem, 2.875rem + 0.625vi, 3.375rem);
+  --gutter: clamp(1rem, 0.5833rem + 2.0833vi, 2.25rem);
+
+  --radius-inner: 0.375rem;
+  --radius-control: 0.5rem;
+
+  --motion: 1;
+  --duration-fast: calc(100ms * var(--motion));
+  --duration-base: calc(200ms * var(--motion));
+  --duration-slow: calc(350ms * var(--motion));
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  /* Lands a little past the target and settles back. */
+  --ease-overshoot: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* WHY: the gutter is reserved on short pages too, so switching tabs doesn't shift the layout. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Thin scrollbars in the line colour, for the page and for code that scrolls sideways. */
+:where(*) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-0);
+  line-height: var(--leading-body);
+  color: var(--color-text);
+  background: var(--surface-canvas);
+}
+
+h1,
+h2 {
+  margin: 0;
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
+}
+
+h1 {
+  font-size: var(--text-3);
+}
+
+h2 {
+  font-size: var(--text-1);
+}
+
+p {
+  max-inline-size: var(--measure);
+  margin: 0;
+}
+
+a {
+  color: var(--color-link);
+}
+
+/* Host logos before links to svelte.dev and GitHub (Simple Icons, CC0). */
+a:is([href^="https://svelte.dev/"], [href^="https://github.com/"])::before {
+  display: inline-block;
+  inline-size: 1cap;
+  block-size: 1cap;
+  margin-inline-end: 0.35ch;
+  vertical-align: baseline;
+  content: "" / "";
+  background: currentColor;
+  mask: var(--_mark) center / contain no-repeat;
+}
+
+a[href^="https://svelte.dev/"] {
+  --_mark: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.354 21.125a4.44 4.44 0 0 1-4.765-1.767 4.109 4.109 0 0 1-.703-3.107 3.898 3.898 0 0 1 .134-.522l.105-.321.287.21a7.21 7.21 0 0 0 2.186 1.092l.208.063-.02.208a1.253 1.253 0 0 0 .226.83 1.337 1.337 0 0 0 1.435.533 1.231 1.231 0 0 0 .343-.15l5.59-3.562a1.164 1.164 0 0 0 .524-.778 1.242 1.242 0 0 0-.211-.937 1.338 1.338 0 0 0-1.435-.533 1.23 1.23 0 0 0-.343.15l-2.133 1.36a4.078 4.078 0 0 1-1.135.499 4.44 4.44 0 0 1-4.765-1.766 4.108 4.108 0 0 1-.702-3.108 3.855 3.855 0 0 1 1.742-2.582l5.589-3.563a4.072 4.072 0 0 1 1.135-.499 4.44 4.44 0 0 1 4.765 1.767 4.109 4.109 0 0 1 .703 3.107 3.943 3.943 0 0 1-.134.522l-.105.321-.286-.21a7.204 7.204 0 0 0-2.187-1.093l-.208-.063.02-.207a1.255 1.255 0 0 0-.226-.831 1.337 1.337 0 0 0-1.435-.532 1.231 1.231 0 0 0-.343.15L8.62 9.368a1.162 1.162 0 0 0-.524.778 1.24 1.24 0 0 0 .211.937 1.338 1.338 0 0 0 1.435.533 1.235 1.235 0 0 0 .344-.151l2.132-1.36a4.067 4.067 0 0 1 1.135-.498 4.44 4.44 0 0 1 4.765 1.766 4.108 4.108 0 0 1 .702 3.108 3.857 3.857 0 0 1-1.742 2.583l-5.589 3.562a4.072 4.072 0 0 1-1.135.499m10.358-17.95C18.484-.015 14.082-.96 10.9 1.068L5.31 4.63a6.412 6.412 0 0 0-2.896 4.295 6.753 6.753 0 0 0 .666 4.336 6.43 6.43 0 0 0-.96 2.396 6.833 6.833 0 0 0 1.168 5.167c2.229 3.19 6.63 4.135 9.812 2.108l5.59-3.562a6.41 6.41 0 0 0 2.896-4.295 6.756 6.756 0 0 0-.665-4.336 6.429 6.429 0 0 0 .958-2.396 6.831 6.831 0 0 0-1.167-5.168Z"/></svg>');
+}
+
+a[href^="https://github.com/"] {
+  --_mark: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>');
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+[data-token="keyword"] {
+  color: var(--syntax-keyword);
+}
+
+[data-token="function"] {
+  color: var(--syntax-function);
+}
+
+[data-token="string"] {
+  color: var(--syntax-string);
+}
+
+[data-token="number"] {
+  color: var(--syntax-number);
+}
+
+[data-token="punctuation"],
+[data-token="tag"] {
+  color: var(--color-text-muted);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-focus) 25%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+kbd {
+  display: inline-block;
+  min-inline-size: 1.75em;
+  padding: 0.125em 0.5em;
+  font-family: var(--font-mono);
+  font-size: max(0.75rem, 0.875em);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  text-align: center;
+  white-space: nowrap;
+  background: var(--surface-raised);
+  border: 1px solid var(--color-line-strong);
+  border-block-end-width: 2px;
+  border-radius: var(--radius-inner);
+  transition:
+    translate var(--duration-fast) var(--ease-out),
+    border-width var(--duration-fast) var(--ease-out);
+
+  &.is-pressed {
+    translate: 0 1px;
+    border-block-end-width: 1px;
+  }
+
+  button & {
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+}
+
+button {
+  /* Hover and press mix the text colour into the surface by this amount. */
+  --_state: 0%;
+
+  display: inline flex;
+  gap: 0.5em;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2.5em;
+  padding-inline: 0.75em;
+  font: inherit;
+  font-size: var(--text--1);
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  background: color-mix(in oklab, var(--surface-raised), currentColor var(--_state));
+  border: 0;
+  border-radius: var(--radius-control);
+  box-shadow: inset 0 0 0 1px var(--color-line-strong);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    scale var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    --_state: 8%;
+  }
+
+  &:active {
+    --_state: 14%;
+  }
+
+  /* A press, by pointer or by a held shortcut, compresses the button slightly. */
+  @media (prefers-reduced-motion: no-preference) {
+    &:active:not(:disabled),
+    &.is-pressed {
+      scale: 0.97;
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+/* NOTE: the chevron is two thin gradient strokes in currentColor, so it follows the scheme and
+   sits a set distance from the edge, which the native arrow doesn't. */
+select {
+  --_chevron: 0.3125em;
+  --_stroke:
+    transparent calc(50% - 0.6px), currentColor calc(50% - 0.6px), currentColor calc(50% + 0.6px),
+    transparent calc(50% + 0.6px);
+
+  min-block-size: 2.5em;
+  padding-inline: 0.75em calc(1.5em + 2 * var(--_chevron));
+  font: inherit;
+  font-size: var(--text--1);
+  color: var(--color-text);
+  appearance: none;
+  cursor: pointer;
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(45deg, var(--_stroke)), linear-gradient(-45deg, var(--_stroke));
+  background-repeat: no-repeat;
+  background-position:
+    right calc(0.75em + var(--_chevron)) center,
+    right 0.75em center;
+  background-size: var(--_chevron) var(--_chevron);
+  border: 0;
+  border-radius: var(--radius-control);
+  box-shadow: inset 0 0 0 1px var(--color-line-strong);
+}
+
+input[type="text"] {
+  min-inline-size: 0;
+  min-block-size: 2.5em;
+  padding-inline: 0.75em;
+  font: inherit;
+  font-size: var(--text--1);
+  color: var(--color-text);
+  background: var(--surface-raised);
+  border: 0;
+  border-radius: var(--radius-control);
+  box-shadow: inset 0 0 0 1px var(--color-line-strong);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--color-focus);
+}
+
+output {
+  font-size: var(--text--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+label:has(> input[type="checkbox"]) {
+  display: inline flex;
+  gap: var(--space-2xs);
+  align-items: center;
+}
+
+/* CONTRACT: the class `hotkey({ pressedClass })` and `pressed()` add while a shortcut is held. */
+.is-pressed {
+  color: var(--color-text-selected);
+  background: var(--surface-selected);
+}
