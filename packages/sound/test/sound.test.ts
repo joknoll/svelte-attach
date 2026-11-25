@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+// The attachment tests dispatch events on DOM elements.
 import { beforeAll, afterAll, describe, expect, it, vi } from "vite-plus/test";
 import { Sound } from "../src/index.ts";
 

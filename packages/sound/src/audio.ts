@@ -1,3 +1,4 @@
+// Loads and decoded buffers are shared across attachments and Sound instances.
 const buffers = new Map<string, Promise<AudioBuffer>>();
 let context: AudioContext | undefined;
 

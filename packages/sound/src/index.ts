@@ -20,7 +20,6 @@ export interface Playback {
   stop(): void;
 }
 
-/** A reusable sound whose overlapping playbacks can be stopped together. */
 export class Sound {
   private readonly sources = new Set<Playback>();
   private generation = 0;
@@ -38,7 +37,7 @@ export class Sound {
     }
   }
 
-  /** Resolves to false when Web Audio is unavailable. Loading errors reject. */
+  /** Primes the shared URL cache. Resolves to false without Web Audio and rejects on load failure. */
   async preload(): Promise<boolean> {
     const context = audioContext();
     if (!context) return false;
@@ -46,7 +45,10 @@ export class Sound {
     return true;
   }
 
-  /** Each call starts an independent playback. The returned handle stops only that playback. */
+  /**
+   * The handle stops only this playback. Resolves to null if unavailable or stopped before starting.
+   * Load and resume failures reject.
+   */
   async play(): Promise<Playback | null> {
     const context = audioContext();
     if (!context) return null;
@@ -101,14 +103,14 @@ export class Sound {
     return playback;
   }
 
-  /** Stops active playbacks and cancels plays still waiting for load or resume. */
+  /** Stops active playbacks and prevents pending ones from starting after load or resume. */
   stop(): void {
     this.generation += 1;
     for (const playback of this.sources) playback.stop();
   }
 }
 
-/** Binds sound playback to DOM events for the lifetime of an element. */
+/** The stop event and detachment stop active sounds and prevent pending playbacks from starting. */
 export function sound(options: SoundAttachmentOptions): Attachment<HTMLElement> {
   return (element) => {
     const { src, events, onError, ...soundOptions } = options;
@@ -131,7 +133,6 @@ export function sound(options: SoundAttachmentOptions): Attachment<HTMLElement> 
   };
 }
 
-/** Creates attachments with shared defaults; decoded audio is cached by URL. */
 export function useSound(
   src: string,
   events: SoundEvents,
