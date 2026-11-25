@@ -204,18 +204,48 @@ export function formatHint<const S extends string>(
     .join(" / ");
 }
 
+const PHYSICAL_KEY = /^(?:Key([A-Z])|Digit([0-9]))$/;
+
+/** The letter or digit at this key's position on a US layout, read from `KeyboardEvent.code`. */
+function physicalKey(code: string): string | undefined {
+  const match = PHYSICAL_KEY.exec(code);
+  return (match?.[1] ?? match?.[2])?.toLowerCase();
+}
+
+// Characters without case, such as "?", "@" or "5", need Shift, Option or AltGr on some layouts.
+function isSymbol(key: string): boolean {
+  return key.length === 1 && key !== " " && key.toLowerCase() === key.toUpperCase();
+}
+
 export function matches(event: KeyboardEvent, spec: ParsedShortcut): boolean {
-  return (
-    eventKey(event.key) === spec.key &&
-    event.ctrlKey === spec.ctrl &&
-    event.shiftKey === spec.shift &&
-    event.altKey === spec.alt &&
-    event.metaKey === spec.meta
-  );
+  if (event.metaKey !== spec.meta) return false;
+  const typed = eventKey(event.key);
+
+  if (typed === spec.key && isSymbol(typed)) {
+    // The modifiers that type a symbol only count when the shortcut names them.
+    // AltGr reports as Ctrl+Alt on Windows, and Option types symbols on Apple layouts.
+    const altGraph = event.getModifierState("AltGraph");
+    const altTypes = altGraph || isMac();
+    return (
+      (event.ctrlKey && !altGraph) === spec.ctrl &&
+      (!spec.shift || event.shiftKey) &&
+      (spec.alt ? event.altKey : altTypes || !event.altKey)
+    );
+  }
+
+  if (event.ctrlKey !== spec.ctrl || event.shiftKey !== spec.shift || event.altKey !== spec.alt) {
+    return false;
+  }
+  if (typed === spec.key) return true;
+  // Cyrillic layouts, AZERTY's digit row and Option+letter on Apple layouts type other
+  // characters on letter and digit keys. A key that types another ASCII letter or digit is a
+  // different key on this layout, so it must not fall back.
+  return !/^[a-z0-9]$/.test(typed) && physicalKey(event.code) === spec.key;
 }
 
 /** True when releasing this key ends the shortcut: its key or any of its modifiers. */
 export function releases(event: KeyboardEvent, spec: ParsedShortcut): boolean {
-  const key = eventKey(event.key);
-  return key === spec.key || (isModifierKey(key) && spec[key]);
+  const typed = eventKey(event.key);
+  if (isModifierKey(typed)) return typed === spec.key || spec[typed];
+  return typed === spec.key || physicalKey(event.code) === spec.key;
 }

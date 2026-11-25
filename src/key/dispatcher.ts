@@ -11,15 +11,26 @@ export interface Registration {
   consume: boolean;
 }
 
-const IGNORED_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
+// Radio and range inputs stay guarded because they use arrow, Home and End keys themselves.
+const NON_TEXT_INPUTS = new Set([
+  "checkbox",
+  "button",
+  "submit",
+  "reset",
+  "image",
+  "color",
+  "file",
+]);
 const registrations = new Set<Registration>();
 let stopListener: (() => void) | null = null;
 
 function isTyping(event: KeyboardEvent): boolean {
-  const target = event.target;
-  return (
-    target instanceof HTMLElement && (IGNORED_TAGS.has(target.tagName) || target.isContentEditable)
-  );
+  // The window sees a shadow host as the target, so look at the innermost element instead.
+  const target = event.composedPath()[0];
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  if (target instanceof HTMLInputElement) return !NON_TEXT_INPUTS.has(target.type);
+  return target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
 }
 
 function inIgnoreZone(event: KeyboardEvent): boolean {
@@ -39,7 +50,9 @@ function inIgnoreZone(event: KeyboardEvent): boolean {
 }
 
 function handleKeydown(event: KeyboardEvent): void {
-  if (event.isComposing || event.key === "Dead") return;
+  // A dead key starts an accented character. With Option held on Apple layouts it is a
+  // shortcut instead, and `matches` identifies it by its physical key.
+  if (event.isComposing || (event.key === "Dead" && !event.altKey)) return;
   const ignoreZone = inIgnoreZone(event);
   const eligible = (reg: Registration): boolean => {
     if (reg.ignoreRepeat && event.repeat) return false;

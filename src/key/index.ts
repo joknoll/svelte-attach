@@ -21,7 +21,10 @@ export interface HotkeyOptions<E extends HTMLElement = HTMLElement> {
   /** Defaults to true. */
   preventDefault?: boolean;
   stopPropagation?: boolean;
-  /** Defaults to true: shortcuts are ignored while an input, select, textarea or editable element has focus. */
+  /**
+   * Defaults to true: shortcuts are ignored while a text field, select, radio, range or editable
+   * element has focus. Checkboxes and buttons do not block them.
+   */
   ignoreInputs?: boolean;
   /** Defaults to true. */
   ignoreRepeat?: boolean;
@@ -40,12 +43,16 @@ interface HeldState {
 }
 
 function trackHeld(element: HTMLElement, className: string): HeldState {
-  const active = new Set<ParsedShortcut>();
+  // Maps each held shortcut to the `code` of the key that started it. Releasing Shift before `/`
+  // makes the keyup report "/" instead of "?", so the physical key is what identifies it.
+  const active = new Map<ParsedShortcut, string>();
   // Only removes a class this tracker added, so classes set elsewhere survive.
   const release = (event?: KeyboardEvent): void => {
     if (active.size === 0) return;
-    for (const shortcut of active) {
-      if (!event || releases(event, shortcut)) active.delete(shortcut);
+    for (const [shortcut, code] of active) {
+      if (!event || (code !== "" && event.code === code) || releases(event, shortcut)) {
+        active.delete(shortcut);
+      }
     }
     if (active.size === 0) element.classList.remove(className);
   };
@@ -56,7 +63,7 @@ function trackHeld(element: HTMLElement, className: string): HeldState {
   return {
     press(event, shortcuts) {
       for (const shortcut of shortcuts) {
-        if (matches(event, shortcut)) active.add(shortcut);
+        if (matches(event, shortcut)) active.set(shortcut, event.code);
       }
       element.classList.add(className);
     },

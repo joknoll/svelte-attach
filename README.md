@@ -48,11 +48,17 @@ A shortcut is zero or more modifiers followed by one key, joined with `+`, such 
   - `esc`, `return` and `del` as aliases
 - **Errors:** shortcut literals are checked by TypeScript, so `hotkey("ctrl+esacpe")` fails to compile with `Unknown key "esacpe"`. Shortcuts held in a `string` variable are checked at runtime and throw a `TypeError`.
 
+How keys match across keyboard layouts:
+
+- **Symbols:** write the character, such as `"?"` or `"@"`. The Shift, AltGr, or (on Apple devices) Option needed to type it is ignored unless the shortcut names it, while Ctrl and Meta must still match.
+- **Letters and digits:** `"k"` also matches the physical K key when the layout types something else there, such as Cyrillic `л` or `˚` from Option+K on a Mac. So `alt+k` works on macOS, and `shift+5` matches the key that types `%`. A key that types another Latin letter is not a fallback: on AZERTY, `"a"` matches the key labelled A, not the one in the US A position.
+- **Shift with letters:** Shift always counts for letters, so `"k"` does not fire on Shift+K.
+
 `pressed(keys, { className = "is-pressed", ignoreInputs = true })` adds a class while a shortcut is held, without triggering anything. A lone modifier such as `"mod"` or `"shift"` is a valid shortcut here, which suits key caps in a hint.
 
 `formatHint(keys)` formats shortcuts for display: `mod+s` becomes `⌘ S` on Apple devices and `Ctrl + S` elsewhere. On the server it renders the non-Apple form.
 
-Hotkeys ignore repeated keys, IME composition, focused form fields and editable elements, disabled elements, and elements inside an inert subtree. `data-keyshortcuts-ignore` on a container suppresses hotkeys while focus is inside it.
+Hotkeys ignore repeated keys, IME composition, disabled elements, and elements inside an inert subtree. They also ignore keys typed into focused text fields, selects, radio buttons, range sliders and editable elements, including those inside a shadow root. Checkboxes and buttons do not block them. `data-keyshortcuts-ignore` on a container suppresses hotkeys while focus is inside it.
 
 ## Sound
 
