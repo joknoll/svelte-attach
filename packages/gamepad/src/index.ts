@@ -5,10 +5,11 @@ import { isButtonPressed, registerButton, type GamepadButtonOptions } from "./po
 export { GamepadButtonMap, isButtonPressed };
 export type { ButtonName, GamepadButtonOptions };
 
+/** API availability is checked at import time. Permissions Policy can still block access. */
 export const isSupported: boolean =
   typeof navigator !== "undefined" && typeof navigator.getGamepads === "function";
 
-/** Activates a focused element when a standard gamepad button is newly pressed. */
+/** A new press clicks the focused element itself unless `onPress` is provided. */
 export function gamepadButton(
   button: ButtonName,
   options: GamepadButtonOptions = {},

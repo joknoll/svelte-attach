@@ -1,3 +1,4 @@
+/** CONTRACT: Standard Gamepad API indices denote physical button positions. */
 export const GamepadButtonMap = {
   A: 0,
   B: 1,

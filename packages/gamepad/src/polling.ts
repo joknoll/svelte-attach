@@ -20,6 +20,7 @@ function connectedPad(pads: readonly (Gamepad | null)[], index?: number): Gamepa
   return pad?.mapping === "standard" ? pad : null;
 }
 
+/** Uses the first occupied slot by default and returns false for a nonstandard mapping. */
 export function isButtonPressed(button: ButtonName, padIndex?: number): boolean {
   if (typeof navigator === "undefined" || typeof navigator.getGamepads !== "function") {
     return false;
@@ -30,13 +31,16 @@ export function isButtonPressed(button: ButtonName, padIndex?: number): boolean 
 
 function poll(): void {
   try {
+    // FIXME: If Permissions Policy blocks gamepad access, this throws again on every frame.
     const pads = navigator.getGamepads();
     for (const registration of registrations) {
       const { element, button, options } = registration;
       const pad = connectedPad(pads, options.padIndex);
       const pressed = pad?.buttons[GamepadButtonMap[button]]?.pressed ?? false;
       const newlyPressed = pressed && !registration.pressed;
+      // Track presses without focus so focusing while a button is held does not activate.
       registration.pressed = pressed;
+      // FIXME: A focused shadow-root element is skipped because the document reports its host.
       if (
         newlyPressed &&
         pad &&
@@ -51,6 +55,7 @@ function poll(): void {
       }
     }
   } finally {
+    // FIXME: A callback that replaces the last registration can start a second polling loop.
     frame = registrations.size > 0 ? requestAnimationFrame(poll) : 0;
   }
 }

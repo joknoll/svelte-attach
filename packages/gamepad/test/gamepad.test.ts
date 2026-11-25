@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+// The attachment tests use DOM focus and element clicks.
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { gamepadButton, isButtonPressed } from "../src/index.ts";
 
