@@ -22,7 +22,6 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: "24"
           cache: true
       # The example imports the package from dist/, so it has to be built first.
       - run: vp run build

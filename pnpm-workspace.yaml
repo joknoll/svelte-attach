@@ -4,15 +4,10 @@ packages:
 catalogMode: prefer
 
 catalog:
-  "@types/node": ^24
-  svelte: ^5.55.0
+  "@types/node": ^26.6.6
+  svelte: ^5.59.1
   typescript: ^7.0.2
-  vite: npm:@voidzero-dev/vite-plus-core@1.2.0
-  vite-plus: 1.2.0
+  vite: npm:@voidzero-dev/vite-plus-core@8.3.8001
+  vite-plus: 1.8.0
 overrides:
   vite@*: "catalog:"
-peerDependencyRules:
-  allowAny:
-    - vite
-  allowedVersions:
-    vite: "*"
