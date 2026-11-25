@@ -1,6 +1,6 @@
 # Gamepad
 
-Use a standard-mapped gamepad to activate focused Svelte elements. Read button state directly when you don't need to activate an element.
+Use a standard-mapped gamepad to activate Svelte elements, either when they have focus or from anywhere on the page. Read button state directly when you don't need to activate an element.
 
 ```ts
 import { gamepadButton, isButtonPressed, isSupported } from "@joknoll/svelte-attach/gamepad";
@@ -17,13 +17,16 @@ function gamepadButton<E extends HTMLElement = HTMLElement>(
 ): Attachment<E>;
 ```
 
-Clicks the attached element on a new button press, but only if that element has focus. Moving focus while the button is held doesn't trigger a click. Disabled or inert elements and hidden pages don't activate.
+Clicks the attached element on a new button press. By default the element must have focus; set `requireFocus: false` to activate it wherever focus is. Moving focus while the button is held doesn't trigger a click. Disabled or inert elements and hidden pages don't activate.
 
-| Param               | Description                                        | Default             |
-| ------------------- | -------------------------------------------------- | ------------------- |
-| `button`            | A standard-mapped [button name](#buttons).         | Required            |
-| `options.onTrigger` | Callback `(element, pad)` that replaces the click. | `element.click()`   |
-| `options.padIndex`  | A non-negative integer gamepad slot.               | First occupied slot |
+Each press activates one element. A focused element wins; otherwise the most recently attached one does, as with `hotkey`.
+
+| Param                  | Description                                        | Default             |
+| ---------------------- | -------------------------------------------------- | ------------------- |
+| `button`               | A standard-mapped [button name](#buttons).         | Required            |
+| `options.onTrigger`    | Callback `(element, pad)` that replaces the click. | `element.click()`   |
+| `options.padIndex`     | A non-negative integer gamepad slot.               | First occupied slot |
+| `options.requireFocus` | Only activate while the element has focus.         | `true`              |
 
 Unknown button names and invalid slot indices throw a `RangeError` when you create the attachment.
 

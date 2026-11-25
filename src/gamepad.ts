@@ -28,6 +28,8 @@ export interface GamepadButtonOptions<E extends HTMLElement = HTMLElement> {
   onTrigger?: (element: E, pad: Gamepad) => void;
   /** Gamepad slot to read. Defaults to the first occupied slot. */
   padIndex?: number;
+  /** Only activate while the element has focus. Defaults to `true`. */
+  requireFocus?: boolean;
 }
 
 interface Registration {
@@ -35,7 +37,14 @@ interface Registration {
   button: ButtonName;
   trigger: (pad: Gamepad) => void;
   padIndex: number | undefined;
+  requireFocus: boolean;
   pressed: boolean;
+}
+
+interface Candidate {
+  registration: Registration;
+  pad: Gamepad;
+  focused: boolean;
 }
 
 const registrations = new Set<Registration>();
@@ -62,26 +71,37 @@ function poll(): void {
   try {
     // FIXME: If Permissions Policy blocks gamepad access, this throws again on every frame.
     const pads = navigator.getGamepads();
+    const visible = document.visibilityState !== "hidden";
+    // One press activates one element: keyed by pad and button.
+    const winners = new Map<string, Candidate>();
     for (const registration of registrations) {
-      const { element, button, trigger, padIndex } = registration;
+      const { element, button, padIndex, requireFocus } = registration;
       const pad = connectedPad(pads, padIndex);
       const pressed = pad?.buttons[GamepadButtonMap[button]]?.pressed ?? false;
       const newlyPressed = pressed && !registration.pressed;
       // Track presses without focus so focusing while a button is held does not activate.
       registration.pressed = pressed;
-      // FIXME: A focused shadow-root element is skipped because the document reports its host.
       if (
-        newlyPressed &&
-        pad &&
-        document.visibilityState !== "hidden" &&
-        element.isConnected &&
-        element === document.activeElement &&
-        !element.matches(":disabled") &&
-        !element.closest("[inert]")
+        !newlyPressed ||
+        !pad ||
+        !visible ||
+        !element.isConnected ||
+        element.matches(":disabled") ||
+        element.closest("[inert]")
       ) {
-        trigger(pad);
+        continue;
+      }
+      // FIXME: A focused shadow-root element is skipped because the document reports its host.
+      const focused = element === document.activeElement;
+      if (requireFocus && !focused) continue;
+      // A focused element wins; otherwise the newest registration does, as with `hotkey`.
+      const key = `${pad.index}:${button}`;
+      const current = winners.get(key);
+      if (!current || focused || !current.focused) {
+        winners.set(key, { registration, pad, focused });
       }
     }
+    for (const { registration, pad } of winners.values()) registration.trigger(pad);
   } finally {
     // FIXME: A callback that replaces the last registration can start a second polling loop.
     frame = registrations.size > 0 ? requestAnimationFrame(poll) : 0;
@@ -90,11 +110,12 @@ function poll(): void {
 
 /**
  * Clicks the element, or calls `onTrigger`, when a standard gamepad button is newly pressed
- * while the element itself has focus.
+ * while the element itself has focus. Set `requireFocus: false` to activate it from anywhere.
  *
  * @example
  * ```svelte
  * <button {@attach gamepadButton("A")} onclick={confirm}>Confirm</button>
+ * <button {@attach gamepadButton("START", { requireFocus: false })} onclick={pause}>Pause</button>
  * ```
  */
 export function gamepadButton<E extends HTMLElement = HTMLElement>(
@@ -104,7 +125,7 @@ export function gamepadButton<E extends HTMLElement = HTMLElement>(
   if (!Object.hasOwn(GamepadButtonMap, button)) {
     throw new RangeError(`Unknown gamepad button: ${String(button)}`);
   }
-  const { onTrigger, padIndex } = options;
+  const { onTrigger, padIndex, requireFocus = true } = options;
   if (padIndex !== undefined && (!Number.isInteger(padIndex) || padIndex < 0)) {
     throw new RangeError("Gamepad padIndex must be a non-negative integer.");
   }
@@ -117,6 +138,7 @@ export function gamepadButton<E extends HTMLElement = HTMLElement>(
       button,
       trigger: (pad) => (onTrigger ? onTrigger(element, pad) : element.click()),
       padIndex,
+      requireFocus,
       pressed: false,
     };
     registrations.add(registration);
