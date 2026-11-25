@@ -64,7 +64,7 @@ export function hotkey(
   };
 }
 
-/** Adds a class while a shortcut is held. Releasing a key or modifier, or blurring the window, clears it. */
+/** Applies the class while any shortcut is held. Modifier releases clear affected shortcuts. Window blur clears all. */
 export function pressed(
   keys: string | string[],
   className = "is-pressed",

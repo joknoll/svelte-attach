@@ -25,8 +25,8 @@ const KEY_LABELS: Record<string, string> = {
 };
 
 /**
- * Formats `mod+s` as `⌘ S` or `Ctrl + S` and joins alternatives with ` / `.
- * Malformed combinations throw a `TypeError`.
+ * Displays `mod+s` as `⌘ S` on Apple devices and `Ctrl + S` elsewhere.
+ * Joins alternatives with ` / ` and throws a `TypeError` for malformed combinations.
  */
 export function formatHint(shortcut: string | string[]): string {
   const mac = isMac();
