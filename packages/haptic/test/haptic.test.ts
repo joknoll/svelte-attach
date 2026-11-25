@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+// The attachment test needs a DOM element to exercise listener registration and cleanup.
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { cancelHaptic, createPattern, haptic, triggerHaptic } from "../src/index.ts";
 

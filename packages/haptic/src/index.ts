@@ -1,7 +1,7 @@
 import type { Attachment } from "svelte/attachments";
 import { on } from "svelte/events";
 
-/** Timing patterns accepted by the Web Vibration API, in milliseconds. */
+/** CONTRACT: Entries alternate vibration and pause durations in milliseconds, starting with vibration. */
 export const patterns = {
   light: [10],
   medium: [25],
@@ -24,10 +24,11 @@ export interface HapticOptions {
   event?: keyof HTMLElementEventMap;
 }
 
+/** Whether `navigator.vibrate` is callable at module evaluation time. */
 export const isSupported: boolean =
   typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 
-/** Resolves a preset or validates a native vibration pattern. */
+/** Returns a mutable copy. Empty patterns and negative or non-finite durations throw a RangeError. */
 export function createPattern(input: HapticPattern = "medium"): number[] {
   const values =
     typeof input === "string" ? patterns[input] : typeof input === "number" ? [input] : input;
@@ -42,7 +43,7 @@ export function createPattern(input: HapticPattern = "medium"): number[] {
   return [...values];
 }
 
-/** Returns false when vibration is unavailable or the browser declines it. */
+/** For valid patterns, false means the API is unavailable or the browser declined the request. */
 export function triggerHaptic(input: HapticPattern = "medium"): boolean {
   const pattern = createPattern(input);
   return typeof navigator !== "undefined" && typeof navigator.vibrate === "function"
@@ -50,14 +51,14 @@ export function triggerHaptic(input: HapticPattern = "medium"): boolean {
     : false;
 }
 
-/** Cancels the current device vibration, including vibrations started elsewhere. */
+/** Requests cancellation of the current browser vibration, including requests made outside this package. */
 export function cancelHaptic(): boolean {
   return typeof navigator !== "undefined" && typeof navigator.vibrate === "function"
     ? navigator.vibrate(0)
     : false;
 }
 
-/** Triggers a native vibration pattern when an element receives an event. */
+/** Cleanup lets ongoing vibration continue because cancellation affects other callers. */
 export function haptic(options: HapticOptions = {}): Attachment<HTMLElement> {
   const pattern = createPattern(options.pattern);
   return (element) => on(element, options.event ?? "click", () => triggerHaptic(pattern));
