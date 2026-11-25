@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+// The attachments register DOM listeners and mutate element attributes and classes.
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { formatHint, hotkey, pressed } from "../src/index.ts";
 

@@ -20,13 +20,8 @@ export interface HotkeyOptions {
 export type HotkeyTrigger = (e: KeyboardEvent, node: HTMLElement) => void;
 
 /**
- * Attachment that fires `onTrigger` (or `node.click()`) when one of `keys` is pressed.
- * Sets `aria-keyshortcuts` on the element and restores the prior value on cleanup.
- *
- * @example
- * ```svelte
- * <button {@attach hotkey("mod+s", save)}>Save</button>
- * ```
+ * The most recently attached eligible match runs, clicking the element by default.
+ * A single attachment sets `aria-keyshortcuts` and restores the original value on detach.
  */
 export function hotkey(
   keys: string | string[],
@@ -43,6 +38,7 @@ export function hotkey(
 
     const raw = normalizeKeys(keys);
     const shortcuts = parseShortcuts(raw);
+    // FIXME: Restoring prior ARIA leaves stale shortcuts when overlapping hotkeys detach out of order.
     const prevAria = node.getAttribute("aria-keyshortcuts");
     node.setAttribute("aria-keyshortcuts", formatAriaShortcuts(shortcuts));
 
@@ -68,14 +64,7 @@ export function hotkey(
   };
 }
 
-/**
- * Attachment that adds `className` while one of `keys` is held, removes it on keyup.
- *
- * @example
- * ```svelte
- * <button {@attach hotkey("mod+s", save)} {@attach pressed("mod+s")}>Save</button>
- * ```
- */
+/** Adds a class while a shortcut is held. Releasing a key or modifier, or blurring the window, clears it. */
 export function pressed(
   keys: string | string[],
   className = "is-pressed",

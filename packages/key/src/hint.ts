@@ -25,11 +25,8 @@ const KEY_LABELS: Record<string, string> = {
 };
 
 /**
- * Format a shortcut string (or array of alternatives) into a human-readable hint.
- *
- * @example
- * formatHint("mod+s")         // → "⌘ S" on Mac, "Ctrl + S" on PC
- * formatHint(["j", "down"])   // → "J / Down"
+ * Formats `mod+s` as `⌘ S` or `Ctrl + S` and joins alternatives with ` / `.
+ * Malformed combinations throw a `TypeError`.
  */
 export function formatHint(shortcut: string | string[]): string {
   const mac = isMac();

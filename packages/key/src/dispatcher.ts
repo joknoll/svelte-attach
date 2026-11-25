@@ -26,6 +26,7 @@ const ALIASES: Record<string, string> = {
 
 const MODIFIERS = new Set(["ctrl", "shift", "alt", "meta", "cmd", "mod"]);
 
+// CONTRACT: ARIA names Space and Plus explicitly because whitespace and + separate shortcut tokens.
 const ARIA_KEYS: Record<string, string> = {
   " ": "Space",
   "+": "Plus",
@@ -141,11 +142,12 @@ function isTyping(event: KeyboardEvent): boolean {
   );
 }
 
-/** Ignore shortcuts inside marked ancestors unless the ancestor has focus. */
 function inIgnoreZone(event: KeyboardEvent): boolean {
   const target = event.target;
   if (!(target instanceof Element)) return false;
 
+  // CONTRACT: Starting above the target lets a focused ignore zone receive shortcuts itself.
+  // Only the nearest marked ancestor decides whether to suppress them.
   let ancestor = target.parentElement;
   while (ancestor) {
     if (ancestor.hasAttribute("data-keyshortcuts-ignore")) {
