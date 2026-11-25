@@ -2,6 +2,8 @@
 
 Svelte attachments to add keyboard shortcuts, sound effects, vibration, and gamepad controls to Svelte 5 components.
 
+[Try the examples](https://joknoll.github.io/svelte-attach/)
+
 ## Usage
 
 Requires Svelte `5.55.0` or later.
