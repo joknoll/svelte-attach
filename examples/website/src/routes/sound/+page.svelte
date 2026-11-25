@@ -5,7 +5,6 @@
 
   let count = $state(0);
 
-  // Programmatic Sound instance — used without DOM events
   const clickSound = new Sound(click);
 
   function handleDoubleClick() {
@@ -16,7 +15,6 @@
     }, 125);
   }
 
-  // Pre-configured attachment factory — reused across elements
   const clickFx = useSound(click, ["click"]);
 </script>
 

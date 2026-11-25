@@ -1,12 +1,7 @@
-// See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
 declare global {
   namespace App {
-    // interface Error {}
-    // interface Locals {}
-    // interface PageData {}
-    // interface PageState {}
-    // interface Platform {}
+    // CONTRACT: SvelteKit uses this namespace for application-wide types.
+    // See https://svelte.dev/docs/kit/types#app.d.ts for extension points.
   }
 }
 

@@ -17,7 +17,6 @@
 <p class="subtitle">Keyboard shortcut attachments for Svelte 5 elements</p>
 
 <div class="grid">
-  <!-- Simple key -->
   <div class="card">
     <h2>Simple key</h2>
     <p>Press <kbd>L</kbd> anywhere to like</p>
@@ -36,7 +35,6 @@
     <code>hotkey("l")</code>
   </div>
 
-  <!-- Modifier keys -->
   <div class="card">
     <h2>Modifier keys</h2>
     <p>Press <kbd>Ctrl</kbd>+<kbd>S</kbd> to save</p>
@@ -54,7 +52,6 @@
     <code>hotkey("ctrl+s")</code>
   </div>
 
-  <!-- Cross-platform mod -->
   <div class="card">
     <h2>Cross-platform mod</h2>
     <p>Press <kbd>Mod</kbd>+<kbd>Z</kbd> (Ctrl on Windows/Linux, ⌘ on Mac)</p>
@@ -72,7 +69,6 @@
     <code>hotkey("mod+z")</code>
   </div>
 
-  <!-- Direct option -->
   <div class="card">
     <h2>Direct option</h2>
     <p>Shortcut passed in the attachment options instead of markup</p>
@@ -87,7 +83,6 @@
     <code>hotkey("shift+space")</code>
   </div>
 
-  <!-- Toggle enabled -->
   <div class="card">
     <h2>Conditional</h2>
     <p>Press <kbd>K</kbd> — toggle to enable/disable</p>
@@ -106,7 +101,6 @@
     <code>&#123;@attach enabled && hotkey("k")&#125;</code>
   </div>
 
-  <!-- Alternatives -->
   <div class="card">
     <h2>Alternatives</h2>
     <p>Either <kbd>J</kbd> or <kbd>↓</kbd> will trigger the button</p>

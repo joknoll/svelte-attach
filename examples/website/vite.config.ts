@@ -12,7 +12,8 @@ export default defineConfig({
   plugins: lazyPlugins(() => [
     sveltekit({
       compilerOptions: {
-        // Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+        // Dependencies retain their own compiler mode so legacy components still compile.
+        // Recheck the override when upgrading to Svelte 6, which defaults to runes mode.
         runes: ({ filename }) =>
           filename.split(/[/\\]/).includes("node_modules") ? undefined : true,
       },
