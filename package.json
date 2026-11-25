@@ -54,8 +54,8 @@
   "scripts": {
     "build": "vp pack",
     "test": "vp test",
-    "ready": "vp check && vp run build && vp test && vp run website#check && vp run website#build",
-    "dev": "vp run website#dev",
+    "ready": "vp check && vp run build && vp test && vp run example#check && vp run example#build",
+    "dev": "vp run example#dev",
     "prepare": "vp config",
     "prepublishOnly": "vp run build"
   },

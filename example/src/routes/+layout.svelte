@@ -1,5 +1,6 @@
 <script lang="ts">
   import favicon from "#lib/assets/favicon.svg";
+  import { resolve } from "$app/paths";
   import { page } from "$app/state";
   import type { LayoutProps } from "./$types";
 
@@ -11,11 +12,12 @@
     { href: "/sound", label: "Sound" },
     { href: "/key", label: "Key" },
     { href: "/gamepad", label: "Gamepad" },
-  ];
+  ] as const;
 
-  function isActive(href: string): boolean {
-    const path = page.url.pathname.replace(/\/$/, "") || "/";
-    return href === "/" ? path === "/" : path.startsWith(href);
+  function isActive(href: (typeof links)[number]["href"]): boolean {
+    const path = page.url.pathname.replace(/\/$/, "");
+    const target = resolve(href).replace(/\/$/, "");
+    return href === "/" ? path === target : path.startsWith(target);
   }
 </script>
 
@@ -24,10 +26,10 @@
 </svelte:head>
 
 <header>
-  <a class="brand" href="/">svelte-attach</a>
+  <a class="brand" href={resolve("/")}>svelte-attach</a>
   <nav>
     {#each links.slice(1) as link (link.href)}
-      <a href={link.href} class:active={isActive(link.href)}>{link.label}</a>
+      <a href={resolve(link.href)} class:active={isActive(link.href)}>{link.label}</a>
     {/each}
   </nav>
 </header>

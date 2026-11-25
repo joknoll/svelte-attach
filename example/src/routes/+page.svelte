@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { resolve } from "$app/paths";
+
   const demos = [
     {
       href: "/haptic",
@@ -24,7 +26,7 @@
       pkg: "@joknoll/svelte-attach/gamepad",
       blurb: "Gamepad buttons that activate the focused element via the Gamepad API.",
     },
-  ];
+  ] as const;
 </script>
 
 <h1>svelte-attach</h1>
@@ -33,7 +35,7 @@
 <ul class="cards">
   {#each demos as demo (demo.href)}
     <li>
-      <a href={demo.href}>
+      <a href={resolve(demo.href)}>
         <h2>{demo.title}</h2>
         <code>{demo.pkg}</code>
         <p>{demo.blurb}</p>

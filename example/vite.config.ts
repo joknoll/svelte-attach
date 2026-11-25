@@ -19,6 +19,8 @@ export default defineConfig({
       },
 
       adapter: adapter({ pages: "build", assets: "build", fallback: "404.html" }),
+      // GitHub Pages serves the site from /<repository>/. The Pages workflow sets BASE_PATH.
+      paths: { base: (process.env.BASE_PATH ?? "") as "" | `/${string}` },
       prerender: { entries: ["*"] },
     }),
   ]),
