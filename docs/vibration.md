@@ -1,24 +1,67 @@
 # Vibration
 
-Import from `@joknoll/svelte-attach/haptic`.
+Add vibration feedback on supported devices. Attach it to an element event or trigger it from code.
 
-## `haptic(pattern?, options?)`
+```ts
+import { haptic, triggerHaptic, cancelHaptic } from "@joknoll/svelte-attach/haptic";
+```
 
-Vibrates when the attached element receives `options.on`, which defaults to `"click"`. The default pattern is `"medium"`. Detaching removes the listener and lets any ongoing vibration finish.
+## API
 
-## Patterns
+### `haptic`
 
-A `HapticPattern` is a preset name, a duration in milliseconds, or an array of alternating vibration and pause durations starting with vibration. For example, `[25, 60, 40]` vibrates for 25 ms, pauses for 60 ms, then vibrates for 40 ms.
+```ts
+function haptic(pattern?: HapticPattern, options?: HapticOptions): Attachment<HTMLElement>;
+```
 
-The `patterns` export contains the presets: `light`, `medium`, `heavy`, `soft`, `rigid`, `selection`, `success`, `warning`, `error`, `nudge`, and `buzz`. These change timing, not physical intensity.
+Vibrates when the attached element receives an event. Detaching lets the current vibration finish.
 
-## Helpers
+| Param        | Description                                                 | Default    |
+| ------------ | ----------------------------------------------------------- | ---------- |
+| `pattern`    | A preset, duration, or sequence. See [Patterns](#patterns). | `"medium"` |
+| `options.on` | Event that triggers vibration.                              | `"click"`  |
 
-| Function                | Behavior                                                                                     |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| `createPattern(input?)` | Returns a mutable copy of the duration sequence. Defaults to `"medium"`.                     |
-| `triggerHaptic(input?)` | Requests vibration. Defaults to `"medium"`.                                                  |
-| `cancelHaptic()`        | Requests cancellation of the current vibration, even if it was started outside this package. |
-| `isSupported()`         | Checks whether `navigator.vibrate` exists.                                                   |
+### Patterns
 
-`createPattern`, `triggerHaptic`, and `haptic` throw a `RangeError` for empty patterns or negative or non-finite durations. `triggerHaptic` and `cancelHaptic` return `false` when the API is unavailable; otherwise they return the browser's result. The browser can decline a request even when it supports the API.
+```ts
+type HapticPreset = keyof typeof patterns;
+type HapticPattern = HapticPreset | number | readonly number[];
+```
+
+Pass a preset name, a duration in milliseconds, or a sequence. `[25, 60, 40]` vibrates for 25 ms, pauses for 60 ms, then vibrates for 40 ms. Patterns control timing, not intensity.
+
+The `patterns` export includes `light`, `medium` (the default), `heavy`, `soft`, `rigid`, `selection`, `success`, `warning`, `error`, `nudge`, and `buzz`.
+
+`haptic`, `createPattern`, and `triggerHaptic` throw a `RangeError` for empty patterns or negative or non-finite durations.
+
+### `createPattern`
+
+```ts
+function createPattern(input?: HapticPattern): number[];
+```
+
+Returns a mutable copy of the durations. Defaults to `"medium"`.
+
+### `triggerHaptic`
+
+```ts
+function triggerHaptic(input?: HapticPattern): boolean;
+```
+
+Requests vibration. Defaults to `"medium"`. Returns the browser's result, or `false` if the API is unavailable.
+
+### `cancelHaptic`
+
+```ts
+function cancelHaptic(): boolean;
+```
+
+Requests cancellation of the current vibration, even if another caller started it. Returns the browser's result, or `false` if the API is unavailable.
+
+### `isSupported`
+
+```ts
+function isSupported(): boolean;
+```
+
+Returns `true` if `navigator.vibrate` exists. The browser can still decline a vibration request.

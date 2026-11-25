@@ -1,33 +1,72 @@
 # Keyboard
 
-Import from `@joknoll/svelte-attach/key`.
+Add keyboard shortcuts to Svelte elements. Use `hotkey` to activate an element, `pressed` to show when keys are held, and `formatHint` to display the shortcut.
 
-## `hotkey(keys, options?)`
+```ts
+import { hotkey, pressed, formatHint } from "@joknoll/svelte-attach/key";
+```
 
-Clicks the attached element when a shortcut is pressed, even if the element doesn't have focus. If several eligible attachments match, the most recently attached one wins. The attachment sets `aria-keyshortcuts` on the element and saves its previous value for cleanup.
+## API
 
-| Option                      | Default           | Effect                                                                                                                                      |
-| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `onTrigger(element, event)` | `element.click()` | Replaces the click. Receives a `KeyboardEvent`.                                                                                             |
-| `pressedClass`              | None              | Adds a class from activation until release or window blur.                                                                                  |
-| `preventDefault`            | `true`            | Cancels the matching key event's default action.                                                                                            |
-| `stopPropagation`           | `false`           | Calls `stopPropagation()` on the matching key event.                                                                                        |
-| `ignoreInputs`              | `true`            | Ignores shortcuts in text fields, selects, radio buttons, range inputs, and editable content. Checkboxes and buttons don't block shortcuts. |
-| `ignoreRepeat`              | `true`            | Ignores repeated `keydown` events while a key is held.                                                                                      |
+### `hotkey`
 
-Both keyboard attachments ignore IME composition and skip disabled, detached, or inert elements. Use `data-keyshortcuts-ignore` on a container to suppress shortcuts when a descendant has focus, such as in a dialog with its own key handling.
+```ts
+function hotkey<const S extends string, E extends HTMLElement = HTMLElement>(
+  keys: Shortcut<S> | readonly Shortcut<S>[],
+  options?: HotkeyOptions<E>,
+): Attachment<E>;
+```
 
-## `pressed(keys, options?)`
+Clicks the element even when it doesn't have focus. If multiple eligible hotkeys match, the last attached one wins. It sets `aria-keyshortcuts` and restores the previous value on detach.
 
-Adds a class while a shortcut is held without clicking the element or taking precedence over a `hotkey`. A lone modifier such as `"shift"` works for highlighting a key cap. `className` defaults to `"is-pressed"` and `ignoreInputs` defaults to `true`.
+| Param                     | Description                                                                                      | Default           |
+| ------------------------- | ------------------------------------------------------------------------------------------------ | ----------------- |
+| `keys`                    | A shortcut or an array of alternatives. See [Keys](#keys).                                       | Required          |
+| `options.onTrigger`       | Callback `(element, event)` that replaces the click.                                             | `element.click()` |
+| `options.pressedClass`    | Class to add until release or window blur.                                                       | None              |
+| `options.preventDefault`  | Prevent the key event's default action.                                                          | `true`            |
+| `options.stopPropagation` | Stop the key event from propagating.                                                             | `false`           |
+| `options.ignoreRepeat`    | Ignore repeated keydown events.                                                                  | `true`            |
+| `options.ignoreInputs`    | Skip text fields, selects, radios, sliders, and editable content, but not checkboxes or buttons. | `true`            |
 
-## `formatHint(keys)`
+Both `hotkey` and `pressed` skip IME composition and disabled or inert targets. Add `data-keyshortcuts-ignore` to a container to suppress shortcuts while a child has focus.
 
-Formats shortcuts for display. `formatHint("mod+s")` returns `⌘ S` on Apple devices and `Ctrl + S` elsewhere, including on the server. Alternatives are joined with `/`.
+### `pressed`
+
+```ts
+function pressed<const S extends string>(
+  keys: Shortcut<S> | readonly Shortcut<S>[],
+  options?: PressedOptions,
+): Attachment<HTMLElement>;
+```
+
+Adds a class while the shortcut is held without triggering a click. Use a lone modifier like `"shift"` to highlight a key cap.
+
+| Param                  | Description                                                | Default        |
+| ---------------------- | ---------------------------------------------------------- | -------------- |
+| `keys`                 | A shortcut or an array of alternatives. See [Keys](#keys). | Required       |
+| `options.className`    | Class to add while held.                                   | `"is-pressed"` |
+| `options.ignoreInputs` | Skip the same inputs as `hotkey`.                          | `true`         |
+
+### `formatHint`
+
+```ts
+function formatHint<const S extends string>(keys: Shortcut<S> | readonly Shortcut<S>[]): string;
+```
+
+Returns a display label for one or more [shortcuts](#keys). `"mod+k"` becomes `⌘ K` on Apple devices or `Ctrl + K` elsewhere, including on the server. Alternatives are joined with `/`.
+
+### Keys
+
+Join modifiers and a key with `+`, as in `"ctrl+shift+k"`. Pass an array for alternatives, such as `["j", "arrowdown"]`. Names are case-insensitive.
+
+- **Modifiers:** `ctrl` (`control`), `shift`, `alt` (`option`), `meta` (`cmd`, `command`, `win`), and `mod` (Meta on Apple devices, Control elsewhere).
+- **Keys:** Single characters, `f1` to `f12`, `escape` (`esc`), `enter` (`return`), `tab`, `space`, `plus`, `backspace`, `delete` (`del`), `insert`, `home`, `end`, `pageup`, and `pagedown`. Write `space` and `plus` instead of the literal characters.
+- **Arrows:** `arrowup`, `arrowdown`, `arrowleft`, and `arrowright`, or `up`, `down`, `left`, and `right`.
+
+TypeScript checks shortcut literals. Invalid shortcuts throw a `TypeError` at runtime.
 
 ## Shortcut hint
-
-Use the same shortcut for the label and the held state:
 
 ```svelte
 <script lang="ts">
@@ -44,13 +83,3 @@ Use the same shortcut for the label and the held state:
   }
 </style>
 ```
-
-## Shortcut syntax
-
-Join modifiers and a key with `+`, as in `"ctrl+shift+k"`, or pass an array of alternatives such as `["j", "arrowdown"]`. Names are case-insensitive.
-
-- Modifiers: `ctrl` (`control`), `shift`, `alt` (`option`), `meta` (`cmd`, `command`, `win`), and `mod` (Meta on Apple devices, Control elsewhere).
-- Keys: single characters, `f1` through `f12`, `escape` (`esc`), `enter` (`return`), `tab`, `space`, `plus`, `backspace`, `delete` (`del`), `insert`, `home`, `end`, `pageup`, and `pagedown`.
-- Arrows: `arrowup`, `arrowdown`, `arrowleft`, and `arrowright`, or `up`, `down`, `left`, and `right`.
-
-Use `plus` and `space` rather than literal `+` and space characters. `Shortcut<S>` checks string literals in TypeScript. Malformed shortcuts throw a `TypeError` at runtime when passed to an attachment factory or `formatHint`.

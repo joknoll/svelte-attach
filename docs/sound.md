@@ -1,25 +1,73 @@
 # Sound
 
-Import from `@joknoll/svelte-attach/sound`.
+Play sound effects in response to user actions. Attach `sound` to an element to play on an event, or use `Sound` to start and stop playback from code.
 
-## `sound(src, options?)`
+```ts
+import { sound, Sound, isSupported } from "@joknoll/svelte-attach/sound";
+```
 
-Plays a sound when the attached element receives an event. `src` is a URL or a callback `(element, event) => URL` that chooses a sound when the event fires. Return `null` or `undefined` to skip playback.
+## API
 
-| Option           | Default        | Effect                                                                             |
-| ---------------- | -------------- | ---------------------------------------------------------------------------------- |
-| `on`             | `"click"`      | Event that starts playback.                                                        |
-| `stopOn`         | None           | Event that stops active playback and cancels pending playback for this attachment. |
-| `onError(error)` | Logs a warning | Handles source selection, load, and playback errors.                               |
-| `volume`         | `1`            | Volume from `0` to `1`.                                                            |
-| `loop`           | `false`        | Repeats the sound until stopped.                                                   |
-| `rate`           | `1`            | Playback speed. Must be finite and greater than `0`.                               |
+### `sound`
 
-You can attach one `sound(...)` result to multiple elements. Detaching from an element stops its active sounds and cancels its pending playbacks without affecting the others.
+```ts
+function sound<E extends HTMLElement = HTMLElement>(
+  src: SoundSource<E>,
+  options?: SoundAttachmentOptions,
+): Attachment<E>;
+```
+
+Plays audio when the attached element receives an event. Detaching stops that element's active sounds and cancels pending starts.
+
+| Param             | Description                                                                        | Default       |
+| ----------------- | ---------------------------------------------------------------------------------- | ------------- |
+| `src`             | A URL or `(element, event) => url`. Return `null` or `undefined` to skip playback. | Required      |
+| `options.on`      | Event that starts playback.                                                        | `"click"`     |
+| `options.stopOn`  | Event that stops active sounds and cancels pending starts.                         | None          |
+| `options.onError` | Callback `(error)` for source selection, load, or playback errors.                 | Log a warning |
+
+See also [Playback options](#playback-options).
+
+### `Sound`
+
+```ts
+declare class Sound {
+  constructor(src: string, options?: SoundOptions);
+  play(): Promise<Playback | null>;
+  stop(): void;
+  preload(): Promise<boolean>;
+}
+```
+
+Plays audio from a URL using the [playback options](#playback-options). Call `play()` from a user interaction to avoid autoplay restrictions.
+
+- `play()` starts an independent playback and resolves to a `Playback` handle whose `stop()` stops only that sound. It resolves to `null` if Web Audio is unavailable or `Sound.stop()` canceled the pending start. It rejects if loading or starting playback fails.
+- `stop()` stops all playbacks on the instance and cancels pending starts.
+- `preload()` decodes the audio without playing it. It resolves to `true` on success, `false` without Web Audio, and rejects if loading or decoding fails.
+
+### Playback options
+
+Both `sound` and `Sound` accept these options:
+
+| Param            | Description                                  | Default |
+| ---------------- | -------------------------------------------- | ------- |
+| `options.volume` | Volume from `0` to `1`.                      | `1`     |
+| `options.loop`   | Repeat the sound until stopped.              | `false` |
+| `options.rate`   | Playback speed, finite and greater than `0`. | `1`     |
+
+Invalid volume or rate throws a `RangeError` when you create either one.
+
+Decoded audio is shared by URL.
+
+### `isSupported`
+
+```ts
+function isSupported(): boolean;
+```
+
+Returns `true` if `AudioContext` exists. The browser can still block playback.
 
 ## Switch sounds
-
-Choose a sound based on the checkbox's new state:
 
 ```svelte
 <script lang="ts">
@@ -39,19 +87,3 @@ Choose a sound based on the checkbox's new state:
   Notifications
 </label>
 ```
-
-## `new Sound(src, options?)`
-
-Use `Sound` for imperative playback. It accepts a URL and the `volume`, `loop`, and `rate` options. Invalid volume or rate throws a `RangeError` when creating a `Sound` or `sound(...)` attachment.
-
-| Method      | Behavior                                                                                                                                                                                                  |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `play()`    | Starts a playback and resolves to a handle with `stop()`, or `null` if Web Audio is unavailable or `stop()` canceled the pending start. Calls can overlap. Load and playback failures reject the promise. |
-| `stop()`    | Stops all active playbacks on this instance and prevents pending ones from starting.                                                                                                                      |
-| `preload()` | Fetches and decodes the sound without playing it. Resolves to `true` on success, `false` without Web Audio, and rejects on load failure.                                                                  |
-
-Attachments and `Sound` instances share decoded audio by URL. A failed load can be retried. Start playback from a user interaction to satisfy browser autoplay restrictions.
-
-## `isSupported()`
-
-Returns whether `AudioContext` is available. It doesn't guarantee that the browser will allow playback.

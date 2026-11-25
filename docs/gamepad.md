@@ -1,34 +1,63 @@
 # Gamepad
 
-Import from `@joknoll/svelte-attach/gamepad`.
+Use a standard-mapped gamepad to activate focused Svelte elements. Read button state directly when you don't need to activate an element.
 
-## `gamepadButton(button, options?)`
+```ts
+import { gamepadButton, isButtonPressed, isSupported } from "@joknoll/svelte-attach/gamepad";
+```
 
-Clicks the attached element on a new press of a standard-mapped gamepad button. The element itself must have focus when the press is detected. Holding a button and then moving focus onto the element doesn't activate it. Disabled or inert elements and hidden pages don't activate.
+## API
 
-| Option                    | Default             | Effect                                                        |
-| ------------------------- | ------------------- | ------------------------------------------------------------- |
-| `onTrigger(element, pad)` | `element.click()`   | Replaces the click. Receives the `Gamepad` that triggered it. |
-| `padIndex`                | First occupied slot | Selects a slot by its non-negative integer index.             |
+### `gamepadButton`
 
-An unknown button name or invalid `padIndex` throws a `RangeError` when creating the attachment.
+```ts
+function gamepadButton<E extends HTMLElement = HTMLElement>(
+  button: ButtonName,
+  options?: GamepadButtonOptions<E>,
+): Attachment<E>;
+```
 
-## `isButtonPressed(button, padIndex?)`
+Clicks the attached element on a new button press, but only if that element has focus. Moving focus while the button is held doesn't trigger a click. Disabled or inert elements and hidden pages don't activate.
 
-Reads the current button state without requiring element focus. Returns `false` if the API is unavailable, the slot is empty, or the selected gamepad doesn't use the `standard` mapping. If `padIndex` is omitted, only the first occupied slot is checked, even if a later slot has a standard-mapped device.
+| Param               | Description                                        | Default             |
+| ------------------- | -------------------------------------------------- | ------------------- |
+| `button`            | A standard-mapped [button name](#buttons).         | Required            |
+| `options.onTrigger` | Callback `(element, pad)` that replaces the click. | `element.click()`   |
+| `options.padIndex`  | A non-negative integer gamepad slot.               | First occupied slot |
 
-## `isSupported()`
+Unknown button names and invalid slot indices throw a `RangeError` when you create the attachment.
 
-Checks whether `navigator.getGamepads` exists. It doesn't check for connected devices or permission. A Permissions Policy can still cause `isButtonPressed` to throw.
+### `isButtonPressed`
 
-## Buttons
+```ts
+function isButtonPressed(button: ButtonName, padIndex?: number): boolean;
+```
 
-`GamepadButtonMap` maps the following names to standard button positions. `ButtonName` is the union of those names. Labels printed on controllers may differ.
+Reads a button without requiring focus. Returns `false` if the API is unavailable or the chosen slot has no standard-mapped gamepad.
 
-| Position               | Names                         |
-| ---------------------- | ----------------------------- |
-| Face buttons           | `A`, `B`, `X`, `Y`            |
-| Shoulders and triggers | `LB`, `RB`, `LT`, `RT`        |
-| Stick presses          | `L3`, `R3`                    |
-| Directional pad        | `UP`, `DOWN`, `LEFT`, `RIGHT` |
-| System buttons         | `SELECT`, `START`, `HOME`     |
+| Param      | Description                                | Default             |
+| ---------- | ------------------------------------------ | ------------------- |
+| `button`   | A standard-mapped [button name](#buttons). | Required            |
+| `padIndex` | The gamepad slot to read.                  | First occupied slot |
+
+### `isSupported`
+
+```ts
+function isSupported(): boolean;
+```
+
+Returns `true` if `navigator.getGamepads` exists. A Permissions Policy can still block access and cause `isButtonPressed` to throw.
+
+### Buttons
+
+```ts
+type ButtonName = keyof typeof GamepadButtonMap;
+```
+
+`GamepadButtonMap` maps these names to standard button indices. They refer to physical positions, not the labels printed on your controller:
+
+- Face: `A`, `B`, `X`, `Y`
+- Shoulders and triggers: `LB`, `RB`, `LT`, `RT`
+- Stick clicks: `L3`, `R3`
+- D-pad: `UP`, `DOWN`, `LEFT`, `RIGHT`
+- System: `SELECT`, `START`, `HOME`
