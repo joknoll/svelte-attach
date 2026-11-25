@@ -20,13 +20,14 @@ export type HapticPreset = keyof typeof patterns;
 export type HapticPattern = HapticPreset | number | readonly number[];
 
 export interface HapticOptions {
-  pattern?: HapticPattern;
-  event?: keyof HTMLElementEventMap;
+  /** Event that triggers the vibration. Defaults to `"click"`. */
+  on?: keyof HTMLElementEventMap;
 }
 
-/** Whether `navigator.vibrate` is callable at module evaluation time. */
-export const isSupported: boolean =
-  typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
+/** Whether `navigator.vibrate` exists. The browser can still decline a request. */
+export function isSupported(): boolean {
+  return typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
+}
 
 /** Returns a mutable copy. Empty patterns and negative or non-finite durations throw a RangeError. */
 export function createPattern(input: HapticPattern = "medium"): number[] {
@@ -46,20 +47,28 @@ export function createPattern(input: HapticPattern = "medium"): number[] {
 /** For valid patterns, false means the API is unavailable or the browser declined the request. */
 export function triggerHaptic(input: HapticPattern = "medium"): boolean {
   const pattern = createPattern(input);
-  return typeof navigator !== "undefined" && typeof navigator.vibrate === "function"
-    ? navigator.vibrate(pattern)
-    : false;
+  return isSupported() ? navigator.vibrate(pattern) : false;
 }
 
 /** Requests cancellation of the current browser vibration, including requests made outside this package. */
 export function cancelHaptic(): boolean {
-  return typeof navigator !== "undefined" && typeof navigator.vibrate === "function"
-    ? navigator.vibrate(0)
-    : false;
+  return isSupported() ? navigator.vibrate(0) : false;
 }
 
-/** Cleanup lets ongoing vibration continue because cancellation affects other callers. */
-export function haptic(options: HapticOptions = {}): Attachment<HTMLElement> {
-  const pattern = createPattern(options.pattern);
-  return (element) => on(element, options.event ?? "click", () => triggerHaptic(pattern));
+/**
+ * Vibrates when the element receives `on` (default `"click"`). Detaching lets an ongoing
+ * vibration finish because cancellation would affect other callers.
+ *
+ * @example
+ * ```svelte
+ * <button {@attach haptic("selection", { on: "pointerdown" })}>Select</button>
+ * ```
+ */
+export function haptic(
+  pattern: HapticPattern = "medium",
+  options: HapticOptions = {},
+): Attachment<HTMLElement> {
+  const durations = createPattern(pattern);
+  const event = options.on ?? "click";
+  return (element) => on(element, event, () => triggerHaptic(durations));
 }

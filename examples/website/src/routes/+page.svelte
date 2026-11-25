@@ -3,26 +3,26 @@
     {
       href: "/haptic",
       title: "Haptic",
-      pkg: "@joknoll/svelte-attach-haptic",
+      pkg: "@joknoll/svelte-attach/haptic",
       blurb: "Vibration feedback on DOM events via the Web Vibration API.",
     },
     {
       href: "/sound",
       title: "Sound",
-      pkg: "@joknoll/svelte-attach-sound",
+      pkg: "@joknoll/svelte-attach/sound",
       blurb: "Sound playback bound to DOM events via the Web Audio API.",
     },
     {
       href: "/key",
       title: "Key",
-      pkg: "@joknoll/svelte-attach-key",
+      pkg: "@joknoll/svelte-attach/key",
       blurb: "Keyboard shortcut attachments for DOM elements.",
     },
     {
       href: "/gamepad",
       title: "Gamepad",
-      pkg: "@joknoll/svelte-attach-gamepad",
-      blurb: "Read gamepad button state via the Gamepad API.",
+      pkg: "@joknoll/svelte-attach/gamepad",
+      blurb: "Gamepad buttons that activate the focused element via the Gamepad API.",
     },
   ];
 </script>

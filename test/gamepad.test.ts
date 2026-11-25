@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // The attachment tests use DOM focus and element clicks.
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { gamepadButton, isButtonPressed } from "../src/index.ts";
+import { gamepadButton, isButtonPressed } from "../src/gamepad.ts";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -60,5 +60,38 @@ describe("gamepad", () => {
 
     if (typeof cleanup === "function") cleanup();
     expect(cancel).toHaveBeenCalledOnce();
+  });
+
+  it("passes the element first to onTrigger instead of clicking", () => {
+    const buttons = Array(17).fill(false) as boolean[];
+    vi.stubGlobal("navigator", { getGamepads: () => [pad(buttons)] });
+    const queue: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) =>
+      queue.push(callback),
+    );
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    const button = document.createElement("button");
+    document.body.append(button);
+    button.focus();
+    const click = vi.spyOn(button, "click");
+    const onTrigger = vi.fn();
+    const cleanup = gamepadButton("B", { onTrigger })(button);
+
+    queue.shift()?.(0);
+    buttons[1] = true;
+    queue.shift()?.(0);
+    expect(onTrigger).toHaveBeenCalledWith(
+      button,
+      expect.objectContaining({ mapping: "standard" }),
+    );
+    expect(click).not.toHaveBeenCalled();
+    if (typeof cleanup === "function") cleanup();
+  });
+
+  it("validates arguments when the attachment is created", () => {
+    // @ts-expect-error unknown button name
+    expect(() => gamepadButton("Z")).toThrow(RangeError);
+    expect(() => gamepadButton("A", { padIndex: -1 })).toThrow(RangeError);
   });
 });

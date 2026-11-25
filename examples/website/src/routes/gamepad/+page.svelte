@@ -4,7 +4,7 @@
     isButtonPressed,
     gamepadButton,
     GamepadButtonMap,
-  } from "@joknoll/svelte-attach-gamepad";
+  } from "@joknoll/svelte-attach/gamepad";
 
   const buttons = Object.keys(GamepadButtonMap) as (keyof typeof GamepadButtonMap)[];
 
@@ -23,7 +23,7 @@
   }
 
   $effect(() => {
-    if (!isSupported) return;
+    if (!isSupported()) return;
     frame = requestAnimationFrame(poll);
     return () => cancelAnimationFrame(frame);
   });
@@ -37,7 +37,7 @@
 </p>
 
 <label class="support-indicator">
-  <input type="checkbox" checked={isSupported} disabled />
+  <input type="checkbox" checked={isSupported()} disabled />
   Gamepad API available
 </label>
 

@@ -1,24 +1,83 @@
 {
-  "name": "svelte-attach",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@joknoll/svelte-attach",
+  "version": "0.3.0",
+  "description": "Svelte 5 attachments for keyboard shortcuts, sound effects, vibration, and gamepad buttons.",
+  "keywords": [
+    "attachment",
+    "gamepad",
+    "haptic",
+    "hotkey",
+    "keyboard",
+    "sound",
+    "svelte",
+    "svelte5",
+    "vibration",
+    "web-audio"
+  ],
+  "homepage": "https://github.com/joknoll/svelte-attach#readme",
+  "bugs": {
+    "url": "https://github.com/joknoll/svelte-attach/issues"
+  },
+  "license": "MIT",
+  "author": "joknoll",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joknoll/svelte-attach.git"
+  },
+  "files": [
+    "dist"
+  ],
   "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./key": {
+      "types": "./dist/key.d.ts",
+      "default": "./dist/key.js"
+    },
+    "./sound": {
+      "types": "./dist/sound.d.ts",
+      "default": "./dist/sound.js"
+    },
+    "./haptic": {
+      "types": "./dist/haptic.d.ts",
+      "default": "./dist/haptic.js"
+    },
+    "./gamepad": {
+      "types": "./dist/gamepad.d.ts",
+      "default": "./dist/gamepad.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "ready": "vp check && vp run -r build && vp run -r check && vp run -r test",
+    "build": "vp pack",
+    "test": "vp test",
+    "ready": "vp check && vp run build && vp test && vp run website#check && vp run website#build",
     "dev": "vp run website#dev",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "prepublishOnly": "vp run build"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
+    "jsdom": "^29.0.1",
+    "svelte": "catalog:",
+    "typescript": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "svelte": ">=5.55.0"
   },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
       "version": "12.11.2",
       "onFail": "download"
+    },
+    "runtime": {
+      "name": "node",
+      "version": ">=22.18.0"
     }
-  },
-  "engines": {
-    "node": ">=22.18.0"
   }
 }

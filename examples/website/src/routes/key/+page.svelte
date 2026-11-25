@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatHint, hotkey, pressed } from "@joknoll/svelte-attach-key";
+  import { formatHint, hotkey, pressed } from "@joknoll/svelte-attach/key";
 
   let saveCount = $state(0);
   let undoCount = $state(0);
@@ -23,7 +23,6 @@
     <button
       title={formatHint("l")}
       {@attach hotkey("l")}
-      {@attach pressed("l")}
       onclick={() => {
         likeCount++;
         flash("L");
@@ -70,17 +69,17 @@
   </div>
 
   <div class="card">
-    <h2>Direct option</h2>
-    <p>Shortcut passed in the attachment options instead of markup</p>
+    <h2>Held state</h2>
+    <p>Hold <kbd {@attach pressed("shift")}>Shift</kbd> and press <kbd>Space</kbd></p>
     <button
       title={formatHint("shift+space")}
-      {@attach hotkey("shift+space")}
+      {@attach hotkey("shift+space", { pressedClass: "is-pressed" })}
       onclick={() => flash("Shift+Space")}
       class:flash={lastKey === "Shift+Space"}
     >
       Shift+Space
     </button>
-    <code>hotkey("shift+space")</code>
+    <code>hotkey("shift+space", &#123; pressedClass: "is-pressed" &#125;)</code>
   </div>
 
   <div class="card">
@@ -181,6 +180,13 @@
   button.flash {
     background: #d4edda;
     border-color: #28a745;
+  }
+
+  /* The attachments add these classes at runtime, so the compiler cannot see them in markup. */
+  kbd:global(.is-pressed),
+  button:global(.is-pressed) {
+    background: #e2e8f0;
+    border-color: #64748b;
   }
 
   button.dim {
