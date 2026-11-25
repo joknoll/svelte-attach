@@ -1,6 +1,6 @@
 {
   "name": "@joknoll/svelte-attach",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "description": "Svelte 5 attachments for keyboard shortcuts, sound effects, vibration, and gamepad buttons.",
   "keywords": [
     "attachment",
