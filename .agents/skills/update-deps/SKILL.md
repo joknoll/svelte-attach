@@ -24,54 +24,63 @@ disable-model-invocation: true
 
 ## Update
 
-1. **Baseline**
+1. **Read-only preflight**
    - Work from the repo root. Check `git status --short`, `package.json`,
      `example/package.json`, and `pnpm-workspace.yaml`.
-   - Run `vp install --frozen-lockfile`, then `vp run ready`. If either fails,
-     report it and stop before changing versions.
+   - Run `vp outdated -r --format json` once. A `wanted` version newer than
+     `current` is an in-range update. A `latest` version newer than `wanted`
+     is a candidate outside the declared range. Exit `1` can mean updates were
+     found; check the output and don't treat scan errors as an empty result.
+   - Check the Node pin and typings and the local and global Vite+ versions
+     using **Node.js** and **Vite+** below, without changing anything yet.
+     If nothing is actionable after accounting for holds and blockers, report
+     that and stop without installing or running checks.
 
-2. **Reconcile Node.js and its typings**
-   - Follow **Node.js** below before evaluating other dependency upgrades.
+2. **Baseline**
+   - Before changing versions, run `vp install --frozen-lockfile`, then
+     `vp run ready`. If either fails, report it and stop.
 
-3. **Scan**
-   - Run `vp outdated -r --format list`, then run it again with `--compatible`
-     to see updates within the declared ranges.
-   - Exit `1` can mean updates were found. Check the output before treating it
-     as an error.
+3. **Reconcile Node.js and its typings**
+   - Follow **Node.js** below before trying the other dependency updates.
 
 4. **Update in range**
-   - Run `vp update -r -- --depth 0 --include-workspace-root`, or target named
+   - If the scan found in-range updates, run
+     `vp update -r -- --depth 0 --include-workspace-root`, or target named
      packages if a rule limits the batch.
    - Review the manifest and lockfile diff. Keep the original range when the
      resolved version didn't change. If you restore a range, refresh the
      lockfile with `vp install`.
-   - Run `vp run ready`. If the batch fails, split it and keep the updates that
-     pass.
+   - Choose checks from **Trial checks** below. If the batch fails, split it
+     and keep the updates that pass.
 
 5. **Try newer versions**
    - Check holds. Read release notes for the full version jump, including
-     skipped majors, and check peer requirements and compatibility with the
-     root Node pin.
+     skipped majors. Note migration risks and possible feature leads. Check
+     peer requirements and compatibility with the root Node pin.
    - Run `vp update <package>@<version>`, or edit its existing declaration and
      run `vp install`. For the project toolchain, follow **Vite+** below.
-   - Apply allowed fixes. Run targeted checks, then `vp run ready`. Smoke-test
-     affected example behavior and verify declared minimums when relevant.
+   - Apply allowed fixes and choose checks from **Trial checks** below. Verify
+     declared minimums when relevant.
    - If a trial fails or can't be verified, undo only that trial, run
      `vp install --frozen-lockfile`, and continue with unrelated upgrades.
 
 6. **Verify the final set**
-   - Run `vp install --frozen-lockfile` and `vp run --no-cache ready` with all
-     retained upgrades in place.
-   - If Node or build tooling changed, also build from `example/` with
-     `BASE_PATH=/svelte-attach vp build`, as the Pages workflow does. Serve the
-     output under `/svelte-attach/` and check navigation, asset loads, and page
-     errors in a browser. The normal `ready` build doesn't exercise the subpath.
+   - If any upgrades were retained, run `vp install --frozen-lockfile` and
+     `vp run --no-cache ready` with all of them in place. If a failure appears
+     only here, isolate it using the saved trial states. Keep unrelated
+     upgrades that pass and rerun the final checks on the resulting set.
+   - If Node, build tooling, or example behavior changed, also build from
+     `example/` with `BASE_PATH=/svelte-attach vp build`, as the Pages workflow
+     does. Serve the output under `/svelte-attach/` and check navigation, asset
+     loads, and page errors in a browser. The normal `ready` build doesn't
+     exercise the subpath.
 
 7. **Explore new features**
-   - Read the release notes from the old version to the new one for each
-     upgrade you kept. Look for APIs, defaults, or tooling that could remove
-     workarounds, simplify state or cleanup, or improve the example's design.
-     Confirm the feature and its minimum version in upstream docs.
+   - Reuse release notes from the trials. Read only version ranges not yet
+     reviewed for upgrades you kept. Look for APIs, defaults, or tooling that
+     could remove workarounds, simplify state or cleanup, or improve the
+     example's design. Confirm the feature and its minimum version in upstream
+     docs.
    - Search for what the feature would replace: old APIs, config, or code that
      solves the same problem. Check files touched during migration for
      workarounds the new release makes obsolete.
@@ -79,10 +88,19 @@ disable-model-invocation: true
      replace, why it's better, and how you'd verify it. Note any support
      trade-offs. Skip ideas without a concrete fit and don't apply them unless requested.
 
+## Trial checks
+
+- Match checks to what changed. A jsdom-only trial needs `vp test --run`.
+  A typings-only trial needs `vp check` and `vp run example#check`.
+- Run `vp run ready` for Node runtime or Vite+ changes, or when a trial
+  affects several parts of the project and focused checks won't cover it.
+- Save browser smoke tests for the final set unless a specific trial needs
+  one to verify or isolate a behavior change.
+
 ## Node.js
 
-- Compare the root `devEngines.runtime` pin with the newest stable release
-  from `vp env list-remote node --sort desc`. Ignore prereleases. Before
+- During preflight, compare the root `devEngines.runtime` pin with the newest
+  stable release from `vp env list-remote node --sort desc`. Ignore prereleases. Before
   repinning, read the release notes for the version jump and check the
   toolchain's Node requirements. If the toolchain blocks the release, report
   the blocker and keep the current pin.
@@ -93,10 +111,10 @@ disable-model-invocation: true
 - Compare `@types/node` in the catalog with the pinned Node major even if the
   pin was already current. If they differ, select the latest typings for the
   pinned major and run `vp install`.
-- Check `vp env current` and `vp -C example env current` against the root pin.
-  If Node or its typings changed, apply allowed fixes, run
-  `vp install --frozen-lockfile` and `vp run ready`, and roll back only the
-  trial if it can't be verified.
+- If Node or its typings changed, check `vp env current` and
+  `vp -C example env current` against the root pin. Apply allowed fixes, run
+  `vp install --frozen-lockfile`, and follow **Trial checks**. Roll back only
+  that trial if it can't be verified.
 
 ## Vite+
 
