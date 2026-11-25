@@ -45,6 +45,8 @@
   );
   --color-line-strong: light-dark(var(--color-gray-500), var(--color-gray-600));
   --color-focus: light-dark(var(--color-accent-600), var(--color-accent-400));
+  /* Red, apart from the accent, so an invalid field doesn't look focused. */
+  --color-error: light-dark(oklch(52% 0.19 27), oklch(70% 0.18 27));
 
   /* Syntax: off the accent hue, so orangered keeps meaning "current" and "action". */
   --syntax-keyword: light-dark(oklch(48% 0.16 300), oklch(76% 0.12 300));

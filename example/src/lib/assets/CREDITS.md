@@ -3,7 +3,7 @@
 The example site's sounds come from two projects by Josh Comeau. Both are MIT-licensed; their notices follow.
 
 - `buttons/`: [Button Sounds](https://github.com/joshwcomeau/button-sounds) ([site](https://buttons.joshwcomeau.com/))
-- `sounds/`, except `kids-cheering.opus` and `student-in-peril.opus`: the demo sounds of [use-sound](https://github.com/joshwcomeau/use-sound)
+- `sounds/`: [use-sound](https://github.com/joshwcomeau/use-sound)
 
 The files were converted to Opus.
 

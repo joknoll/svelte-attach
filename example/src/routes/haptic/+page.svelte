@@ -12,11 +12,10 @@
   import PageHeader from "#lib/PageHeader.svelte";
   import Pulses from "#lib/Pulses.svelte";
   import Section from "#lib/Section.svelte";
+  import { hydrated } from "#lib/hydrated.svelte.ts";
 
-  let supported = $state(true);
-  $effect(() => {
-    supported = isSupported();
-  });
+  // Assumed while prerendering, so supporting browsers don't flash the notice.
+  const supported = $derived(!hydrated() || isSupported());
 
   const total = (pattern: readonly number[]) => pattern.reduce((sum, ms) => sum + ms, 0);
 
@@ -32,7 +31,12 @@
   }
 
   let input = $state("25, 60, 40");
-  const custom = $derived(input.split(/[\s,]+/).filter(Boolean).map(Number));
+  const custom = $derived(
+    input
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .map(Number),
+  );
   const valid = $derived(custom.length > 0 && custom.every((ms) => Number.isFinite(ms) && ms >= 0));
   let customRun = $state(0);
 
@@ -71,15 +75,14 @@
   {#snippet lead()}
     Enter milliseconds: vibrate, pause, vibrate…
   {/snippet}
-  <Example
-    code={`<button {@attach haptic([${valid ? custom.join(", ") : "…"}])}>Try</button>`}
-  >
+  <Example code={`<button {@attach haptic([${valid ? custom.join(", ") : "…"}])}>Try</button>`}>
     <input
       id="durations"
       type="text"
       inputmode="numeric"
       aria-label="Durations in milliseconds"
       aria-invalid={!valid || undefined}
+      aria-describedby={valid ? undefined : "durations-error"}
       bind:value={input}
     />
     <button disabled={!valid} {@attach valid && haptic(custom)} onclick={() => customRun++}>
@@ -89,7 +92,7 @@
       {#if valid}
         <Pulses pattern={custom} run={customRun} scale={Math.max(SCALE, total(custom))} />
       {:else}
-        <output for="durations">Enter non-negative numbers separated by commas or spaces.</output>
+        <output id="durations-error">Enter non-negative numbers separated by commas or spaces.</output>
       {/if}
     </div>
   </Example>
@@ -141,12 +144,12 @@
       gap: 0.375em;
       place-content: stretch;
       justify-items: start;
+      padding-block: 0.5em 0.625em;
       text-align: start;
 
       & > :global([data-slot="pulses"]) {
         justify-self: stretch;
       }
-      padding-block: 0.5em 0.625em;
     }
   }
 
@@ -158,7 +161,7 @@
     inline-size: 10rem;
 
     &[aria-invalid] {
-      box-shadow: inset 0 0 0 1px var(--color-focus);
+      box-shadow: inset 0 0 0 1px var(--color-error);
     }
   }
 </style>

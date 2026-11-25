@@ -37,13 +37,10 @@
   <code data-slot="command"
     ><span aria-hidden="true" data-token="punctuation">$</span><span data-token="function"
       >{manager}</span
-    > {managers[manager]} <strong>{PACKAGE}</strong></code
+    >
+    {managers[manager]} <strong>{PACKAGE}</strong></code
   >
-  <select
-    aria-label="Package manager"
-    value={manager}
-    onchange={(event) => choose(event.currentTarget.value as Manager)}
-  >
+  <select aria-label="Package manager" bind:value={() => manager, choose}>
     {#each Object.keys(managers) as name (name)}
       <option value={name}>{name}</option>
     {/each}

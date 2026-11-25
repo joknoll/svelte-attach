@@ -3,7 +3,11 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";
 
 export default defineConfig({
-  fmt: {},
+  build: {
+    // The static adapter does not publish the default .vite directory.
+    license: { fileName: "licenses.md" },
+  },
+  fmt: { svelte: true },
   lint: {
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },

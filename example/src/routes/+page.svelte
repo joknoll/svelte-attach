@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { isButtonPressed, isSupported as gamepadSupported } from "@joknoll/svelte-attach/gamepad";
   import { haptic, patterns } from "@joknoll/svelte-attach/haptic";
-  import { formatHint, hotkey, pressed } from "@joknoll/svelte-attach/key";
+  import { hotkey, pressed } from "@joknoll/svelte-attach/key";
   import { sound } from "@joknoll/svelte-attach/sound";
   import Example from "#lib/Example.svelte";
   import Install from "#lib/Install.svelte";
@@ -9,6 +8,8 @@
   import Pulses from "#lib/Pulses.svelte";
   import click from "#lib/assets/click.opus";
   import logo from "#lib/assets/favicon.svg";
+  import { held } from "#lib/gamepad.svelte.ts";
+  import { hint } from "#lib/hydrated.svelte.ts";
   import { resolve } from "$app/paths";
 
   const demos = [
@@ -17,21 +18,25 @@
       href: "/key",
       title: "Keyboard",
       blurb: "Shortcuts, held states, and shortcut hints.",
+      preview: keyPreview,
     },
     {
       href: "/sound",
       title: "Sound",
       blurb: "Event-driven and manual playback.",
+      preview: soundPreview,
     },
     {
       href: "/haptic",
       title: "Vibration",
       blurb: "Vibration presets and custom patterns.",
+      preview: hapticPreview,
     },
     {
       href: "/gamepad",
       title: "Gamepad",
       blurb: "Button activation and state.",
+      preview: gamepadPreview,
     },
   ] as const;
 
@@ -44,22 +49,9 @@ ${"</"}script>
 
 <button {@attach hotkey("mod+s")} {@attach sound(click)}>Save</button>`;
 
-  let saveHint = $state(formatHint("mod+s"));
   let saved = $state(0);
 
   let buzzRun = $state(0);
-  let gamepadHeld = $state(false);
-
-  $effect(() => {
-    // Refresh the prerendered Ctrl label after hydration.
-    saveHint = formatHint("mod+s");
-    if (!gamepadSupported()) return;
-    let frame = requestAnimationFrame(function poll() {
-      gamepadHeld = isButtonPressed("A");
-      frame = requestAnimationFrame(poll);
-    });
-    return () => cancelAnimationFrame(frame);
-  });
 </script>
 
 <svelte:head>
@@ -68,7 +60,11 @@ ${"</"}script>
 
 <header>
   <img data-slot="logo" src={logo} alt="" width="107" height="128" />
-  <h1 data-slot="heading"><span>@joknoll/</span><span>svelte-attach</span></h1>
+  <h1 data-slot="heading">
+    <a href="https://npmx.dev/package/@joknoll/svelte-attach"
+      ><span>@joknoll/</span><span>svelte-attach</span></a
+    >
+  </h1>
   <!-- SYNC(README.md): the description, with a link added. -->
   <p data-slot="lead">
     Svelte <a href="https://svelte.dev/docs/svelte/@attach">attachments</a> to add keyboard shortcuts,
@@ -76,11 +72,28 @@ ${"</"}script>
   </p>
 </header>
 
+{#snippet keyPreview()}
+  Hold <kbd {@attach pressed("shift")}>Shift</kbd>
+{/snippet}
+
+{#snippet soundPreview()}
+  <button {@attach sound(click)}>Click</button>
+{/snippet}
+
+{#snippet hapticPreview()}
+  <button {@attach haptic("success")} onclick={() => buzzRun++}>Success</button>
+  <Pulses pattern={patterns.success} run={buzzRun} />
+{/snippet}
+
+{#snippet gamepadPreview()}
+  Press <PadButton name="A" held={held("A")} />
+{/snippet}
+
 <Install />
 
 <Example code={usage}>
   <button {@attach hotkey("mod+s")} {@attach sound(click)} onclick={() => saved++}>
-    Save <kbd>{saveHint}</kbd>
+    Save <kbd>{hint("mod+s")}</kbd>
   </button>
   <output>{saved ? `Saved ×${saved}` : ""}</output>
 </Example>
@@ -90,18 +103,7 @@ ${"</"}script>
     <li>
       <h2><a href={resolve(demo.href)}>{demo.title}</a></h2>
       <p>{demo.blurb}</p>
-      <div data-slot="try">
-        {#if demo.href === "/key"}
-          Hold <kbd {@attach pressed("shift")}>Shift</kbd>
-        {:else if demo.href === "/sound"}
-          <button {@attach sound(click)}>Click</button>
-        {:else if demo.href === "/haptic"}
-          <button {@attach haptic("success")} onclick={() => buzzRun++}>Success</button>
-          <Pulses pattern={patterns.success} run={buzzRun} />
-        {:else}
-          Press <PadButton name="A" held={gamepadHeld} />
-        {/if}
-      </div>
+      <div data-slot="try">{@render demo.preview()}</div>
     </li>
   {/each}
 </ul>
@@ -137,6 +139,22 @@ ${"</"}script>
       font-weight: 400;
       color: var(--color-text-muted);
     }
+
+    /* NOTE: the header's brand on sub pages; it shares this snapshot and grows into place. */
+    & span:last-child {
+      view-transition-name: brand;
+    }
+
+    /* The title links to the package page but keeps the heading's colours. */
+    & a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* NOTE: a link's underline skips inline-block children, so each span draws its own. */
+    & a:hover span {
+      text-decoration: underline;
+    }
   }
 
   [data-slot="lead"] {
@@ -146,7 +164,8 @@ ${"</"}script>
 
   ul {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    /* WHY: min() lets a card shrink below 16rem when large text makes that wider than the page. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
     gap: var(--space-s);
     padding: 0;
     margin: 0;

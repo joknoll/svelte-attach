@@ -19,9 +19,7 @@
 
 <header>
   <h1 data-accent={accent}>{title}</h1>
-  <a href="https://github.com/joknoll/svelte-attach/blob/main/docs/{docs}">
-    API docs
-  </a>
+  <a href="https://github.com/joknoll/svelte-attach/blob/main/docs/{docs}"> API docs </a>
   <!-- Laid out like the install command: copy, then the code. -->
   <div data-slot="import">
     <CopyButton text={code} label="Copy import" />
@@ -74,7 +72,8 @@
         border-radius: 50%;
         opacity: 0;
         translate: 0 -50%;
-        animation: title-ring calc(520ms * var(--motion)) var(--ease-out) calc(180ms * var(--motion)) both;
+        animation: title-ring calc(520ms * var(--motion)) var(--ease-out)
+          calc(180ms * var(--motion)) both;
       }
 
       &::after {

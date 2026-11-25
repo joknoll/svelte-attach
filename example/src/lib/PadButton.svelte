@@ -50,7 +50,8 @@
     {:else if name === "START"}
       <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
     {:else if name === "HOME"}
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /></svg>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /></svg
+      >
     {:else if kind === "stick"}
       {name[0]}
     {:else}

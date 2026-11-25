@@ -8,11 +8,10 @@
   import cheering from "#lib/assets/kids-cheering.opus";
   import switchOn from "#lib/assets/sounds/switch-on.opus";
   import switchOff from "#lib/assets/sounds/switch-off.opus";
+  import { hydrated } from "#lib/hydrated.svelte.ts";
 
-  let supported = $state(true);
-  $effect(() => {
-    supported = isSupported();
-  });
+  // Assumed while prerendering, so supporting browsers don't flash the notice.
+  const supported = $derived(!hydrated() || isSupported());
 
   const clicks = [
     { code: "sound(click)", label: "Click" },
@@ -21,8 +20,16 @@
   let clickIndex = $state(0);
 
   const hovers = [
-    { src: "cheering", options: ['on: "mouseenter"', 'stopOn: "mouseleave"', "volume: 0.2"], label: "Hover" },
-    { src: "click", options: ['on: "mouseenter"', 'stopOn: "mouseleave"', "loop: true"], label: "Hover loop" },
+    {
+      src: "cheering",
+      options: ['on: "mouseenter"', 'stopOn: "mouseleave"', "volume: 0.2"],
+      label: "Hover",
+    },
+    {
+      src: "click",
+      options: ['on: "mouseenter"', 'stopOn: "mouseleave"', "loop: true"],
+      label: "Hover loop",
+    },
   ];
   let hoverIndex = $state(0);
 
@@ -41,7 +48,9 @@
 {/if}
 
 <Section title="Play on click">
-  <Example code={`<button {@attach ${clicks[clickIndex].code}}>${clicks[clickIndex].label}</button>`}>
+  <Example
+    code={`<button {@attach ${clicks[clickIndex].code}}>${clicks[clickIndex].label}</button>`}
+  >
     <button {@attach sound(click)} onclick={() => (clickIndex = 0)}>
       {clicks[0].label}
     </button>

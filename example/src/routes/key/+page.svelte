@@ -1,20 +1,11 @@
 <script lang="ts">
-  import { formatHint, hotkey, pressed } from "@joknoll/svelte-attach/key";
+  import { hotkey, pressed } from "@joknoll/svelte-attach/key";
   import type { Attachment } from "svelte/attachments";
   import { on } from "svelte/events";
   import Example from "#lib/Example.svelte";
   import PageHeader from "#lib/PageHeader.svelte";
   import Section from "#lib/Section.svelte";
-
-  let hydrated = $state(false);
-  $effect(() => {
-    hydrated = true;
-  });
-
-  function hint(keys: string | readonly string[]): string {
-    void hydrated; // Refresh prerendered Ctrl labels after hydration.
-    return formatHint(keys);
-  }
+  import { hint } from "#lib/hydrated.svelte.ts";
 
   const bindings = [
     { keys: "f", label: "❤️ Like", done: "Liked" },
@@ -113,6 +104,7 @@
     <div data-slot="board" aria-hidden="true">
       <span style:translate="{x * 100}% {y * 100}%"></span>
     </div>
+    <output data-slot="position">Row {y + 1}, column {x + 1}</output>
     <div data-slot="arrows" role="group" aria-label="Move">
       <button
         data-slot="up"
@@ -209,6 +201,16 @@
         transition: translate var(--duration-base) var(--ease-overshoot);
       }
     }
+  }
+
+  /* The marker's position, for screen readers; the board shows it to everyone else. */
+  [data-slot="position"] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   /* The inverted T of a keyboard's arrow keys. */

@@ -32,8 +32,12 @@
 </figure>
 
 <style>
+  /* WHY: a demo's widest content, such as a text field's default width, would otherwise widen the
+     figure and push the page sideways; this way the demo wraps and the code scrolls. */
   figure {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-inline-size: 0;
     margin: 0;
     border: 1px solid var(--color-line);
     border-radius: var(--radius-control);

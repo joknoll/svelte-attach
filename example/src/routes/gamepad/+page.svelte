@@ -1,15 +1,12 @@
 <script lang="ts">
-  import {
-    isSupported,
-    isButtonPressed,
-    gamepadButton,
-    type ButtonName,
-  } from "@joknoll/svelte-attach/gamepad";
+  import { isSupported, gamepadButton, type ButtonName } from "@joknoll/svelte-attach/gamepad";
   import Example from "#lib/Example.svelte";
   import Notice from "#lib/Notice.svelte";
   import PadButton from "#lib/PadButton.svelte";
   import PageHeader from "#lib/PageHeader.svelte";
   import Section from "#lib/Section.svelte";
+  import { connected, held } from "#lib/gamepad.svelte.ts";
+  import { hydrated } from "#lib/hydrated.svelte.ts";
 
   // SYNC(docs/gamepad.md): the groups under "Buttons".
   const groups: { name: string; buttons: ButtonName[] }[] = [
@@ -20,22 +17,8 @@
     { name: "System", buttons: ["SELECT", "START", "HOME"] },
   ];
 
-  let supported = $state(true);
-  let connected = $state(false);
-  let held = $state.raw<Partial<Record<ButtonName, boolean>>>({});
-
-  $effect(() => {
-    supported = isSupported();
-    if (!supported) return;
-    let frame = requestAnimationFrame(function poll() {
-      connected = navigator.getGamepads().some(Boolean);
-      const next: Partial<Record<ButtonName, boolean>> = {};
-      for (const { buttons } of groups) for (const name of buttons) next[name] = isButtonPressed(name);
-      held = next;
-      frame = requestAnimationFrame(poll);
-    });
-    return () => cancelAnimationFrame(frame);
-  });
+  // Assumed while prerendering, so supporting browsers don't flash the notice.
+  const supported = $derived(!hydrated() || isSupported());
 
   const actions = [
     { button: "A", label: "Activate", done: "Activated" },
@@ -63,7 +46,7 @@
 
 {#if !supported}
   <Notice>This browser doesn't support the Gamepad API.</Notice>
-{:else if !connected}
+{:else if !connected()}
   <Notice>Connect a gamepad and press any button.</Notice>
 {/if}
 
@@ -80,8 +63,9 @@
         <dd>
           {#each group.buttons as name (name)}
             <div>
-              <PadButton {name} held={held[name]} />
-              <code>{name}</code>
+              <PadButton {name} held={held(name)} />
+              <!-- PadButton already names the button for screen readers. -->
+              <code aria-hidden="true">{name}</code>
             </div>
           {/each}
         </dd>
@@ -97,7 +81,8 @@
   <Example code={`<button {@attach gamepadButton("${action.button}")}>${action.label}</button>`}>
     {#each actions as item (item.button)}
       <button {@attach gamepadButton(item.button)} onclick={() => activate(item)}>
-        {item.label} <PadButton name={item.button} />
+        {item.label}
+        <PadButton name={item.button} />
       </button>
     {/each}
     <output>{count ? `${action.done} ×${count}` : ""}</output>

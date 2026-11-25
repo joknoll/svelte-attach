@@ -20,12 +20,18 @@
       return segment;
     });
   });
-  const span = $derived(scale ?? Math.max(1, pattern.reduce((sum, duration) => sum + duration, 0)));
+  const span = $derived(
+    scale ??
+      Math.max(
+        1,
+        pattern.reduce((sum, duration) => sum + duration, 0),
+      ),
+  );
 </script>
 
 <span data-slot="pulses" aria-hidden="true">
   {#key run}
-    {#each segments as segment, index (index)}
+    {#each segments as segment}
       {#if segment.vibrates}
         <span
           data-running={run > 0 || undefined}
