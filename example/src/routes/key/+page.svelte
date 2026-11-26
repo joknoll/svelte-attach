@@ -64,6 +64,7 @@
 
 <PageHeader
   title="Keyboard"
+  description="Try Svelte 5 keyboard shortcuts, track held keys, and show platform-specific shortcut hints."
   code={'import { hotkey, pressed, formatHint } from "@joknoll/svelte-attach/key";'}
   accent="press"
   docs="keyboard.md"

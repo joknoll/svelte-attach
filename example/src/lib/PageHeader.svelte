@@ -1,5 +1,6 @@
 <script lang="ts">
   import CopyButton from "#lib/CopyButton.svelte";
+  import Seo from "#lib/Seo.svelte";
   import Tokens from "#lib/Tokens.svelte";
 
   /** A one-shot flourish on the title that hints at the page's topic. */
@@ -7,15 +8,14 @@
 
   let {
     title,
+    description,
     code,
     docs,
     accent,
-  }: { title: string; code: string; docs: string; accent?: Accent } = $props();
+  }: { title: string; description: string; code: string; docs: string; accent?: Accent } = $props();
 </script>
 
-<svelte:head>
-  <title>{title} · @joknoll/svelte-attach</title>
-</svelte:head>
+<Seo {title} {description} />
 
 <header>
   <h1 data-accent={accent}>{title}</h1>

@@ -39,6 +39,7 @@
 
 <PageHeader
   title="Gamepad"
+  description="Try activating Svelte 5 controls with a gamepad and reading live button state."
   accent="flick"
   code={'import { gamepadButton, isButtonPressed, isSupported } from "@joknoll/svelte-attach/gamepad";'}
   docs="gamepad.md"

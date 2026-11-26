@@ -38,6 +38,7 @@
 
 <PageHeader
   title="Sound"
+  description="Try event-driven sound effects and manual audio playback in Svelte 5 components."
   code={'import { sound, Sound, isSupported } from "@joknoll/svelte-attach/sound";'}
   accent="ring"
   docs="sound.md"

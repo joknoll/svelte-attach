@@ -49,6 +49,7 @@
 
 <PageHeader
   title="Vibration"
+  description="Try vibration presets and custom haptic patterns on a supported device, with visual previews of each pulse."
   code={'import { haptic, triggerHaptic, cancelHaptic } from "@joknoll/svelte-attach/haptic";'}
   accent="buzz"
   docs="vibration.md"

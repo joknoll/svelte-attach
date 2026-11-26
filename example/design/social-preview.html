@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>svelte-attach social preview</title>
+    <link rel="stylesheet" href="../src/lib/app.css" />
+    <style>
+      /* Capture at 1200 × 630 and save as static/social-preview.png. */
+      :root {
+        color-scheme: dark;
+        scrollbar-gutter: auto;
+      }
+
+      body {
+        box-sizing: border-box;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        inline-size: 1200px;
+        block-size: 630px;
+        padding: 48px 56px 56px;
+        background:
+          radial-gradient(
+            ellipse at top right,
+            color-mix(in oklab, var(--color-accent-500) 13%, transparent),
+            transparent 58%
+          ),
+          var(--surface-canvas);
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font: 600 20px var(--font-mono);
+      }
+
+      header span {
+        color: var(--color-accent-400);
+        letter-spacing: 0.08em;
+      }
+
+      header code {
+        margin-inline-start: auto;
+        color: var(--color-text-muted);
+        font-size: inherit;
+        font-weight: 400;
+      }
+
+      main {
+        align-self: center;
+      }
+
+      h1 {
+        font-size: 100px;
+        line-height: 1;
+        letter-spacing: -0.055em;
+      }
+
+      p {
+        max-inline-size: none;
+        margin-block-start: 18px;
+        color: var(--color-text-muted);
+        font-size: 32px;
+      }
+
+      ul {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      li {
+        display: grid;
+        grid-template-rows: 48px auto;
+        justify-items: start;
+        gap: 14px;
+        padding: 22px 24px;
+        color: var(--color-text-strong);
+        font-size: 26px;
+        font-weight: 600;
+        line-height: 1.2;
+        background: var(--surface-raised);
+        border: 1px solid var(--color-line);
+        border-radius: 12px;
+      }
+
+      kbd {
+        align-self: center;
+        padding: 6px 12px;
+        color: var(--color-text-selected);
+        font-size: 20px;
+        background: var(--surface-selected);
+        border-color: var(--color-focus);
+      }
+
+      li svg {
+        align-self: center;
+        fill: none;
+        stroke: var(--color-focus);
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .face-button {
+        display: grid;
+        place-items: center;
+        inline-size: 42px;
+        aspect-ratio: 1;
+        align-self: center;
+        color: oklch(76% 0.18 145);
+        font-size: 23px;
+        background: var(--surface-canvas);
+        border: 1px solid currentColor;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="../static/favicon.svg" alt="" width="42" height="50" />
+      <span>SVELTE 5 ATTACHMENTS</span>
+      <code>@joknoll</code>
+    </header>
+    <main>
+      <h1>svelte-attach</h1>
+      <p>Add tactile feedback and new ways to interact.</p>
+    </main>
+    <ul>
+      <li><kbd aria-hidden="true">⌘ S</kbd> Keyboard</li>
+      <li>
+        <svg aria-hidden="true" width="44" height="44" viewBox="0 0 32 32">
+          <path d="M4 12h5l7-6v20l-7-6H4zM21 11a7 7 0 0 1 0 10M25 7a12 12 0 0 1 0 18" />
+        </svg>
+        Sound
+      </li>
+      <li>
+        <svg aria-hidden="true" width="92" height="44" viewBox="0 0 92 44">
+          <path d="M2 31h88" stroke="var(--color-line-strong)" />
+          <path d="M2 31h8V13h18v18h12V13h18v18h12V13h20v18" />
+        </svg>
+        Vibration
+      </li>
+      <li><span class="face-button" aria-hidden="true">A</span> Gamepad</li>
+    </ul>
+  </body>
+</html>

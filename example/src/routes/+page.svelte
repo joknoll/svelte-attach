@@ -7,6 +7,7 @@
   import Install from "#lib/Install.svelte";
   import PadButton from "#lib/PadButton.svelte";
   import Pulses from "#lib/Pulses.svelte";
+  import Seo from "#lib/Seo.svelte";
   import click from "#lib/assets/click.opus";
   import logo from "#lib/assets/favicon.svg";
   import { held } from "#lib/gamepad.svelte.ts";
@@ -55,9 +56,7 @@ ${"</"}script>
   let buzzRun = $state(0);
 </script>
 
-<svelte:head>
-  <title>@joknoll/svelte-attach</title>
-</svelte:head>
+<Seo description="Svelte 5 attachments for keyboard shortcuts, sound effects, vibration, and gamepad controls. Try each one in the interactive demos." />
 
 <header>
   <img data-slot="logo" src={logo} alt="" width="107" height="128" />
