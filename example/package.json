@@ -15,7 +15,8 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "dependencies": {
-    "@joknoll/svelte-attach": "workspace:*"
+    "@joknoll/svelte-attach": "workspace:*",
+    "npmx-embed": "catalog:"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^4.0.1",

@@ -2,6 +2,7 @@
   import { haptic, patterns } from "@joknoll/svelte-attach/haptic";
   import { hotkey, pressed } from "@joknoll/svelte-attach/key";
   import { sound } from "@joknoll/svelte-attach/sound";
+  import "npmx-embed";
   import Example from "#lib/Example.svelte";
   import Install from "#lib/Install.svelte";
   import PadButton from "#lib/PadButton.svelte";
@@ -108,6 +109,8 @@ ${"</"}script>
   {/each}
 </ul>
 
+<npmx-card package="@joknoll/svelte-attach" details="size,type,license"></npmx-card>
+
 <style>
   header {
     display: grid;
@@ -206,6 +209,26 @@ ${"</"}script>
     li:hover & {
       text-decoration: underline;
     }
+  }
+
+  npmx-card {
+    --npmx-bg: var(--surface-canvas);
+    --npmx-border: var(--color-line);
+    --npmx-border-hover: var(--color-line-strong);
+    --npmx-text: var(--color-text-strong);
+    --npmx-muted: var(--color-text-muted);
+    --npmx-accent: var(--color-link);
+    --npmx-radius: var(--radius-control);
+    --npmx-font: var(--font-sans);
+    --npmx-font-mono: var(--font-mono);
+
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+
+  npmx-card::part(title) {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   [data-slot="try"] {
