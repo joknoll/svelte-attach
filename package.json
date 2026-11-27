@@ -1,7 +1,7 @@
 {
   "name": "@joknoll/svelte-attach",
   "version": "1.0.0",
-  "description": "Svelte 5 attachments for keyboard shortcuts, sound effects, vibration, and gamepad buttons.",
+  "description": "Svelte 5 attachments for keyboard shortcuts, sound effects, vibration feedback, and gamepad controls.",
   "keywords": [
     "attachment",
     "gamepad",
@@ -14,7 +14,7 @@
     "vibration",
     "web-audio"
   ],
-  "homepage": "https://github.com/joknoll/svelte-attach#readme",
+  "homepage": "https://joknoll.github.io/svelte-attach/",
   "bugs": {
     "url": "https://github.com/joknoll/svelte-attach/issues"
   },
