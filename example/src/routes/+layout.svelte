@@ -6,8 +6,8 @@
   import "#lib/app.css";
   import tick from "#lib/assets/sounds/pop.opus";
   import favicon from "#lib/assets/favicon.svg";
-  import disableSound from "#lib/assets/sounds/disable-sound.opus";
-  import enableSound from "#lib/assets/sounds/enable-sound.opus";
+  import switchOff from "#lib/assets/sounds/switch-off.opus";
+  import switchOn from "#lib/assets/sounds/switch-on.opus";
   import { markHydrated } from "#lib/hydrated.svelte.ts";
   import { onNavigate } from "$app/navigation";
   import { resolve } from "$app/paths";
@@ -155,8 +155,9 @@
       aria-label="Navigation sounds"
       bind:checked={() => soundOn, setSound}
       {@attach hotkey("m")}
-      {@attach sound((input: HTMLInputElement) => (input.checked ? enableSound : disableSound), {
+      {@attach sound((input: HTMLInputElement) => (input.checked ? switchOn : switchOff), {
         on: "change",
+        volume: 0.5,
       })}
     />
     <!-- A speaker with waves when on, crossed out when off. -->
